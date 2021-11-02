@@ -18,9 +18,15 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
+val rsApi: String by project
+
 dependencies {
     implementation(project(":core"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
+
+    // TODO: Figure out why adding this fixes imports like this one:
+    // org.eclipse.dataspaceconnector.spi.protocol.web.WebService
+    implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }
 
 application {
