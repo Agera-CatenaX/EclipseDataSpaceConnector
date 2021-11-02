@@ -44,9 +44,6 @@ public class PrsApiController {
         return "Consumer is healthy.";
     }
 
-    // We want to test this query:
-    // vins/YS3DD78N4X7055320/partsTree?view=AS_BUILT
-    // https://catenaxdev001akssrv.germanywestcentral.cloudapp.azure.com/bmw/mtpdc/api/v0.1/vins/YS3DD78N4X7055320/partsTree?view=AS_BUILT
     @GET
     @Path("vins/{vin}/partsTree")
     public Response transferQuery(@PathParam("vin") String vin,
