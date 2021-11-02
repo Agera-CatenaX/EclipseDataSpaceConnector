@@ -3,9 +3,21 @@ package org.microsoft.extension.prs;
 import jakarta.ws.rs.Consumes;
 import jakarta.ws.rs.GET;
 import jakarta.ws.rs.Path;
+import jakarta.ws.rs.PathParam;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
+import jakarta.ws.rs.core.Response;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
+import org.eclipse.dataspaceconnector.spi.types.domain.metadata.GenericDataCatalogEntry;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
+import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
+
+import java.util.Objects;
+import java.util.UUID;
 
 /**
  * This class contains endpoints added to the consumer, so that a PRS client can request parts tree through consumer.
@@ -18,9 +30,11 @@ public class PrsApiController {
 
     // Monitor is a logger.
     private final Monitor monitor;
+    private final TransferProcessManager processManager;
 
-    public PrsApiController(Monitor monitor) {
+    public PrsApiController(Monitor monitor, TransferProcessManager processManager) {
         this.monitor = monitor;
+        this.processManager = processManager;
     }
 
     @GET
@@ -28,5 +42,51 @@ public class PrsApiController {
     public String checkHealth() {
         monitor.info("Received a health request");
         return "Consumer is healthy.";
+    }
+
+    // We want to test this query:
+    // vins/YS3DD78N4X7055320/partsTree?view=AS_BUILT
+    // https://catenaxdev001akssrv.germanywestcentral.cloudapp.azure.com/bmw/mtpdc/api/v0.1/vins/YS3DD78N4X7055320/partsTree?view=AS_BUILT
+    @GET
+    @Path("vins/{vin}/partsTree")
+    public Response transferQuery(@PathParam("vin") String vin,
+                                  @QueryParam("view") String view,
+                                  // provider address we want to ask the data to.
+                                  @QueryParam("connectorAddress") String connectorAddress,
+                                  // destination where the result should be stored.
+                                  @QueryParam("destination") String destinationPath) {
+
+        Objects.requireNonNull(vin, "vin");
+        Objects.requireNonNull(view, "view");
+        Objects.requireNonNull(connectorAddress, "connectorAddress");
+        Objects.requireNonNull(destinationPath, "destination");
+
+
+        var dataRequest = DataRequest.Builder.newInstance()
+                .id(UUID.randomUUID().toString()) //this is not relevant, thus can be random
+                .connectorAddress(connectorAddress) //the address of the provider connector
+                .protocol("ids-rest") //must be ids-rest
+                .connectorId("consumer")
+                .dataEntry(DataEntry.Builder.newInstance() //the data entry is the source asset
+                        .id(vin) // TODO: See what id we use as vin will also be in property.
+                        // TODO: Make sure catalogEntry is what needs to be used for property or if there is another
+                        //  concept/object that could be used.
+                        .catalogEntry(GenericDataCatalogEntry.Builder.newInstance()
+                                .property("view", view)
+                                .property("vin", vin)
+                                .property("path", "PARTS_TREE_BY_VIN")
+                                .build())
+                        .build()
+                )
+                .dataDestination(DataAddress.Builder.newInstance()
+                        .type("File") //the provider uses this to select the correct DataFlowController
+                        .property("path", destinationPath) //where we want the file to be stored
+                        .build())
+                .managedResources(false) //we do not need any provisioning
+                .build();
+
+        var response = processManager.initiateConsumerRequest(dataRequest);
+        return response.getStatus() != ResponseStatus.OK ? Response.status(400).build() : Response.ok(response.getId()).build();
+
     }
 }
