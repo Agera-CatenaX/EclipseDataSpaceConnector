@@ -1,0 +1,1 @@
+This folder contains api endpoints that we want to add to our consumer.
