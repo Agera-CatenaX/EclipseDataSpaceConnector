@@ -11,7 +11,6 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
  * This class contains endpoints added to the consumer, so that a PRS client can request parts tree through consumer.
  * This class should not contain PRS business logic. The business logic of PRS should be inside the PRS application.
  */
-
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/")

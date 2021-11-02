@@ -18,4 +18,3 @@ public class PrsEndpointExtension implements ServiceExtension {
         webService.registerController(new PrsApiController(context.getMonitor()));
     }
 }
-
