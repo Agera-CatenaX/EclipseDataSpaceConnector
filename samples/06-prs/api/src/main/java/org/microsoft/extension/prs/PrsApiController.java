@@ -15,12 +15,12 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 @Consumes({MediaType.APPLICATION_JSON})
 @Produces({MediaType.APPLICATION_JSON})
 @Path("/")
-public class PRSApiController {
+public class PrsApiController {
 
     // Monitor is a logger.
     private final Monitor monitor;
 
-    public PRSApiController(Monitor monitor) {
+    public PrsApiController(Monitor monitor) {
         this.monitor = monitor;
     }
 
