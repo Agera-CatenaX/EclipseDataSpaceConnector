@@ -11,7 +11,6 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.DataEntry;
-import org.eclipse.dataspaceconnector.spi.types.domain.metadata.GenericDataCatalogEntry;
 
 import java.util.Set;
 
@@ -53,12 +52,7 @@ public class PrsApiExtension implements ServiceExtension {
     private void registerDataEntries(ServiceExtensionContext context) {
         var metadataStore = context.getService(MetadataStore.class);
 
-        GenericDataCatalogEntry file1 = GenericDataCatalogEntry.Builder.newInstance()
-                .property("type", "File")
-                .property("path", "PARTS_TREE_BY_VIN")
-                .build();
-
-        DataEntry entry1 = DataEntry.Builder.newInstance().id("prs-api").catalogEntry(file1).policyId(USE_EU_POLICY).build();
+        DataEntry entry1 = DataEntry.Builder.newInstance().id("prs-api").policyId(USE_EU_POLICY).build();
         metadataStore.save(entry1);
     }
 

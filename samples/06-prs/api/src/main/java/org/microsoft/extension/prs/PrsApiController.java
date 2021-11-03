@@ -53,6 +53,9 @@ public class PrsApiController {
                                   // destination where the result should be stored.
                                   @QueryParam("destination") String destinationPath) {
 
+        monitor.info("Received a request with vin:" + vin);
+        monitor.info("Provider connector address:" + connectorAddress);
+
         Objects.requireNonNull(vin, "vin");
         Objects.requireNonNull(view, "view");
         Objects.requireNonNull(connectorAddress, "connectorAddress");
@@ -65,19 +68,18 @@ public class PrsApiController {
                 .protocol("ids-rest") //must be ids-rest
                 .connectorId("consumer")
                 .dataEntry(DataEntry.Builder.newInstance() //the data entry is the source asset
-                        .id(vin) // TODO: See what id we use as vin will also be in property.
+                        .id("prs-api") // TODO: See what id we use as vin will also be in property.
                         // TODO: Make sure catalogEntry is what needs to be used for property or if there is another
                         //  concept/object that could be used.
-                        .catalogEntry(GenericDataCatalogEntry.Builder.newInstance()
-                                .property("view", view)
-                                .property("vin", vin)
-                                .property("path", "PARTS_TREE_BY_VIN")
-                                .build())
+                        // catalog entry is not needed, verify when it's needed
                         .build()
                 )
                 .dataDestination(DataAddress.Builder.newInstance()
-                        .type("File") //the provider uses this to select the correct DataFlowController
-                        .property("path", destinationPath) //where we want the file to be stored
+                        .type("parts-tree") //the provider uses this to select the correct DataFlowController
+                        .property("destinationPath", destinationPath) //where we want the file to be stored
+                        .property("view", view)
+                        .property("vin", vin)
+                        .property("path", "PARTS_TREE_BY_VIN")
                         .build())
                 .managedResources(false) //we do not need any provisioning
                 .build();

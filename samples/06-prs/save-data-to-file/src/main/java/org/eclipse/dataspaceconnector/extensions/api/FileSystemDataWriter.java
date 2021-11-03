@@ -18,7 +18,7 @@ public class FileSystemDataWriter implements DataWriter {
     @Override
     public void write(DataAddress destination, String data) {
 
-        var destinationPath = Path.of(destination.getProperty("path"));
+        var destinationPath = Path.of(destination.getProperty("destinationPath"));
 
         if (!destinationPath.toFile().exists()) { //interpret as directory
             monitor.info("Destination path " + destinationPath + " does not exist, will attempt to create");

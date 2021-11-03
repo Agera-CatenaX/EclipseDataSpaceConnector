@@ -38,7 +38,7 @@ public class ContractServiceExtension implements ServiceExtension {
 
     @Override
     public final Set<String> requires() {
-        return Set.of(AssetIndex.FEATURE);
+        return Set.of();
     }
 
     @Override

@@ -23,6 +23,14 @@ val rsApi: String by project
 dependencies {
     implementation(project(":core"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
+    implementation(project(":extensions:in-memory:policy-registry-memory"))
+    implementation(project(":extensions:in-memory:metadata-memory"))
+
+    implementation(project(":extensions:filesystem:configuration-fs"))
+    implementation(project(":extensions:iam:iam-mock"))
+
+    implementation(project(":data-protocols:ids"))
+    implementation(project(":data-protocols:ids:ids-policy-mock"))
 
     // TODO: Figure out why adding this fixes imports like this one:
     // org.eclipse.dataspaceconnector.spi.protocol.web.WebService

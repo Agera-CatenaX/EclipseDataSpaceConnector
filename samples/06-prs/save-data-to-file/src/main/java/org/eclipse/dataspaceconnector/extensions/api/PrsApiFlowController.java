@@ -4,6 +4,7 @@ import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResponse;
 import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
+import org.eclipse.dataspaceconnector.spi.types.domain.metadata.GenericDataCatalogEntry;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,17 +22,17 @@ public class PrsApiFlowController implements DataFlowController {
 
     @Override
     public boolean canHandle(DataRequest dataRequest) {
-        return dataRequest.getDataDestination().getType().equalsIgnoreCase("file");
+        return dataRequest.getDataDestination().getType().equalsIgnoreCase("parts-tree");
     }
 
     @Override
     public @NotNull DataFlowInitiateResponse initiateFlow(DataRequest dataRequest) {
-        var source = dataRequest.getDataEntry().getCatalogEntry().getAddress();
         var destination = dataRequest.getDataDestination();
+        monitor.info("Flow initialization started.");
 
         String response;
         try {
-            response = dataReader.read(source);
+            response = dataReader.read(destination);
             monitor.info(response);
         } catch (Exception e) {
             String message = "Error when reading the data: " + e.getMessage();
