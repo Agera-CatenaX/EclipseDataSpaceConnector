@@ -30,7 +30,7 @@ public class FileSystemDataWriter implements DataWriter {
                 throw new RuntimeException(message, e);
             }
         } else if (destinationPath.toFile().isDirectory()) {
-            destinationPath = Path.of(destinationPath.toString(), Instant.now().toString()+"_by_vin.json");
+            destinationPath = Path.of(destinationPath.toString(), Instant.now().toString() + "_by_vin.json");
         }
 
         try {

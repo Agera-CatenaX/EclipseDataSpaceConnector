@@ -17,13 +17,14 @@ public class PrsApiCaller implements DataReader {
     private static final String PATH_PROPERTY = "path";
     private static final String VIN_PROPERTY = "vin";
     private static final String VIEW_PROPERTY = "view";
-    private static final String prsUrl = "";
+    private static final String PRS_URL = ""; // TODO: add PRS_URL to config
     private final PartsRelationshipServiceApi api;
     private final ObjectMapper objectMapper;
 
     public PrsApiCaller() {
         var httpClient = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS).build();
         var apiClient = new ApiClient(httpClient);
+        apiClient.setBasePath(PRS_URL);
         this.api = new PartsRelationshipServiceApi(apiClient);
         this.objectMapper = new ObjectMapper();
     }
@@ -36,14 +37,15 @@ public class PrsApiCaller implements DataReader {
         String view = properties.get(VIEW_PROPERTY);
         String path = properties.get(PATH_PROPERTY);
 
-            switch(path) {
-                case PARTS_TREE_BY_VIN:
-                    try {
-                        return objectMapper.writeValueAsString(api.getPartsTreeByVin(vin, view, "CE", 5));
-                    } catch (ApiException | JsonProcessingException e) {
-                        throw new RuntimeException("Error when calling PRS API", e);
-                    }
-                default: throw new RuntimeException("Query matching path " + path + " not found.");
-            }
+        switch (path) {
+            case PARTS_TREE_BY_VIN:
+                try {
+                    return objectMapper.writeValueAsString(api.getPartsTreeByVin(vin, view, "CE", 5));
+                } catch (ApiException | JsonProcessingException e) {
+                    throw new RuntimeException("Error when calling PRS API", e);
+                }
+            default:
+                throw new RuntimeException("Query matching path " + path + " not found.");
+        }
     }
 }

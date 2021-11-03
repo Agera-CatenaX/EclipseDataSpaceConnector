@@ -41,6 +41,8 @@ subprojects {
         maven {
             url = uri("https://repository.mulesoft.org/nexus/content/repositories/public/") //used for the multihash lib
         }
+        // quick fix, in case gradle search for maven artifact in different folder
+        mavenLocal{ uri("/Users/izabela/.m2/repository") }
     }
 
     tasks.register<DependencyReportTask>("allDependencies"){}
