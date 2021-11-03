@@ -15,8 +15,9 @@
 repositories {
 
     mavenLocal()
-    // quick fix, in case gradle search for maven artifact in different folder
-    flatDir { dir("/Users/izabela/.m2/repository") }
+    // quick fix, in case gradle search for maven artifact in different folder:
+    // mavenLocal{ uri("absolute path to your .m2/repository") }
+
 }
 
 plugins {

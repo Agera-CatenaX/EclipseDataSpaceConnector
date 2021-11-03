@@ -46,3 +46,8 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
     mergeServiceFiles()
     archiveFileName.set("provider.jar")
 }
+
+application {
+    @Suppress("DEPRECATION")
+    mainClassName = "org.eclipse.dataspaceconnector.system.runtime.ConnectorRuntime"
+}
