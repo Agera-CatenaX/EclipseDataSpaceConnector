@@ -38,6 +38,7 @@ public class ContractServiceExtension implements ServiceExtension {
 
     @Override
     public final Set<String> requires() {
+        // temporary fix for samples
         return Set.of();
     }
 
