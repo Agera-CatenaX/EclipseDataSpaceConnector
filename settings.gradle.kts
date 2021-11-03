@@ -125,3 +125,5 @@ include(":samples:05-file-transfer-cloud:consumer")
 include(":samples:05-file-transfer-cloud:provider")
 include(":samples:05-file-transfer-cloud:api")
 include(":samples:05-file-transfer-cloud:transfer-file")
+include("samples:06-prs:api")
+findProject(":samples:06-prs:api")?.name = "api"
