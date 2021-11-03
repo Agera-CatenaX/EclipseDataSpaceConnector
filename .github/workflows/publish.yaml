@@ -21,5 +21,4 @@ jobs:
       - name: Publish package
         run: gradle publish
         env:
-          MAVEN_USERNAME: ${{ secrets.PKG_USERNAME }}
-          MAVEN_PASSWORD: ${{ secrets.PKG_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
