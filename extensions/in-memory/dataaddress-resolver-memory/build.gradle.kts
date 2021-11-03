@@ -22,8 +22,8 @@ dependencies {
 }
 publishing {
     publications {
-        create<MavenPublication>("in-memory.assetindex") {
-            artifactId = "in-memory.assetindex"
+        create<MavenPublication>("in-memory.dataadressresolver") {
+            artifactId = "in-memory.dataadressresolver"
             from(components["java"])
         }
     }
