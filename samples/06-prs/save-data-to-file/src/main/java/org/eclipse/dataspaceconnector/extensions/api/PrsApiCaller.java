@@ -17,14 +17,13 @@ public class PrsApiCaller implements DataReader {
     private static final String PATH_PROPERTY = "path";
     private static final String VIN_PROPERTY = "vin";
     private static final String VIEW_PROPERTY = "view";
-    private static final String PRS_URL = ""; // TODO: add PRS_URL to config
     private final PartsRelationshipServiceApi api;
     private final ObjectMapper objectMapper;
 
-    public PrsApiCaller() {
+    public PrsApiCaller(String prsUrl) {
         var httpClient = new OkHttpClient.Builder().connectTimeout(30, TimeUnit.SECONDS).readTimeout(30, TimeUnit.SECONDS).build();
         var apiClient = new ApiClient(httpClient);
-        apiClient.setBasePath(PRS_URL);
+        apiClient.setBasePath(prsUrl);
         this.api = new PartsRelationshipServiceApi(apiClient);
         this.objectMapper = new ObjectMapper();
     }

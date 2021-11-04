@@ -19,6 +19,8 @@ import static org.eclipse.dataspaceconnector.policy.model.Operator.IN;
 public class PrsApiExtension implements ServiceExtension {
 
     public static final String USE_EU_POLICY = "use-eu";
+    private static final String PRS_URL_CONFIG = "prs.url";
+
 
     // TODO: is it needed?
     @Override
@@ -30,7 +32,10 @@ public class PrsApiExtension implements ServiceExtension {
     public void initialize(ServiceExtensionContext context) {
 
         var dataFlowMgr = context.getService(DataFlowManager.class);
-        var flowController = new PrsApiFlowController(context.getMonitor(), new PrsApiCaller(), new FileSystemDataWriter(context.getMonitor()));
+        String setting = context.getSetting(PRS_URL_CONFIG, "http://localhost:8080");
+        context.getMonitor().info(setting);
+        var flowController = new PrsApiFlowController(context.getMonitor(), new PrsApiCaller(setting),
+                new FileSystemDataWriter(context.getMonitor()));
         dataFlowMgr.register(flowController);
         context.getMonitor().info("PRS API extension initialized!");
 

@@ -25,8 +25,6 @@ dependencies {
     implementation(project(":core:bootstrap"))
     implementation(project(":core:transfer"))
     implementation(project(":core:protocol:web"))
-    implementation(project(":core:policy:policy-model"))
-    implementation(project(":core:policy:policy-engine"))
 
     implementation(project(":extensions:in-memory:transfer-store-memory"))
     implementation(project(":extensions:filesystem:configuration-fs"))
@@ -34,7 +32,6 @@ dependencies {
     implementation(project(":extensions:in-memory:policy-registry-memory"))
     implementation(project(":extensions:in-memory:metadata-memory"))
     implementation(project(":data-protocols:ids"))
-    implementation(project(":data-protocols:ids:ids-policy-mock"))
 
     implementation(project(":samples:06-prs:save-data-to-file"))
 
@@ -49,5 +46,5 @@ tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
 
 application {
     @Suppress("DEPRECATION")
-    mainClassName = "org.eclipse.dataspaceconnector.system.runtime.ConnectorRuntime"
+    mainClassName = "org.eclipse.dataspaceconnector.system.runtime.BaseRuntime"
 }
