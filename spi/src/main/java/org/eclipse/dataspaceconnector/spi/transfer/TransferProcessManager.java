@@ -42,4 +42,8 @@ public interface TransferProcessManager {
      */
     TransferInitiateResponse initiateProviderRequest(DataRequest dataRequest);
 
+    /**
+     * Cancels a transfer process.
+     */
+    void cancelTransferProcess(String processId);
 }
