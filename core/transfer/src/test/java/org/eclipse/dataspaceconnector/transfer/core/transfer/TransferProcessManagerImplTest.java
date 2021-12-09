@@ -31,7 +31,8 @@ import org.junit.jupiter.api.Test;
 import java.util.Collections;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.easymock.EasyMock.*;
+import static org.easymock.EasyMock.createNiceMock;
+import static org.easymock.EasyMock.niceMock;
 
 
 class TransferProcessManagerImplTest {
@@ -45,14 +46,14 @@ class TransferProcessManagerImplTest {
     void setup() {
         store = EasyMock.createMock(TransferProcessStore.class);
 
-        expect(store.processIdForTransferId("1")).andReturn(null);  // first invoke returns no as there is no store process
+        EasyMock.expect(store.processIdForTransferId("1")).andReturn(null);  // first invoke returns no as there is no store process
 
         store.create(EasyMock.isA(TransferProcess.class)); // store should only be called once
         EasyMock.expectLastCall();
 
-        expect(store.processIdForTransferId("1")).andReturn("2");
+        EasyMock.expect(store.processIdForTransferId("1")).andReturn("2");
 
-        expect(store.nextForState(EasyMock.anyInt(), EasyMock.anyInt())).andReturn(Collections.emptyList()).anyTimes();
+        EasyMock.expect(store.nextForState(EasyMock.anyInt(), EasyMock.anyInt())).andReturn(Collections.emptyList()).anyTimes();
 
         EasyMock.replay(store);
 
