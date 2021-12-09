@@ -45,14 +45,11 @@ It shouldn't take more than a couple of minutes, and when it's done it will log 
 , `vault-name`, `storage-container-name` and `storage-account-name`.
 > Take a note of these values!
 
-terraform output -raw certificate|base64 --decode>/tmp/cert.pfx
+Download the certificate used to authenticate the generated service principal against Azure Active Directory:
 
-client_id = "bd32d29e-35d0-47c4-93ca-23b076bfee74"
-storage-account-name = "algatikstorage"
-storage-container-name = "src-container"
-tenant-id = "836f6094-147a-44cc-8064-3dd900228759"
-vault-name = "algatik-vault"
-
+```bash
+terraform output -raw certificate | base64 --decode > cert.pfx
+```
 
 ## Update connector config
 
