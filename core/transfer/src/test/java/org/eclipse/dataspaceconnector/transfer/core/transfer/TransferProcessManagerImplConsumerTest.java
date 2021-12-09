@@ -512,10 +512,9 @@ class TransferProcessManagerImplConsumerTest {
         expect(processStoreMock.nextForState(eq(TransferProcessStates.PROVISIONED.code()), anyInt())).andReturn(Collections.emptyList());
         expect(processStoreMock.nextForState(eq(TransferProcessStates.REQUESTED_ACK.code()), anyInt())).andReturn(Collections.emptyList());
         expect(processStoreMock.nextForState(eq(TransferProcessStates.IN_PROGRESS.code()), anyInt())).andReturn(Collections.singletonList(process));
-        processStoreMock.update(process);
         expect(processStoreMock.nextForState(anyInt(), anyInt())).andReturn(Collections.emptyList()).anyTimes();
 
-        // - Cancel processs
+        // - Cancel process
         expect(processStoreMock.find(process.getId())).andReturn(process);
         process.transitionError("Cancelled");
         processStoreMock.update(process);
@@ -535,6 +534,7 @@ class TransferProcessManagerImplConsumerTest {
         transferProcessManager.registerListener(listener);
 
         //act
+        // - start process and cancel it right away
         transferProcessManager.start(processStoreMock);
         transferProcessManager.cancelTransferProcess(process.getId());
 
