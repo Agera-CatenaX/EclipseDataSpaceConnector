@@ -498,7 +498,7 @@ class TransferProcessManagerImplConsumerTest {
     }
 
     @Test
-    void cancelTransferProcess() throws InterruptedException {
+    void cancelTransferProcess_changesStateToError() throws InterruptedException {
         //arrange
         TransferProcess process = createTransferProcess(TransferProcessStates.IN_PROGRESS);
         process.getProvisionedResourceSet().addResource(new TestResource());
