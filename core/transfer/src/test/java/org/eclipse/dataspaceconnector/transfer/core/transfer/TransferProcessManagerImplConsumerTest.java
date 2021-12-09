@@ -503,7 +503,8 @@ class TransferProcessManagerImplConsumerTest {
         TransferProcess process = createTransferProcess(TransferProcessStates.IN_PROGRESS);
         process.getProvisionedResourceSet().addResource(new TestResource());
 
-        var cdl = new CountDownLatch(1);
+        var cdlTransferProcessManager = new CountDownLatch(1);
+        var cdlWatchdog = new CountDownLatch(1);
 
         // prepare process store
         // - TransferProcessManager main loop
@@ -521,13 +522,16 @@ class TransferProcessManagerImplConsumerTest {
         replay(processStoreMock);
 
         // prepare statuschecker registry
-        expect(statusCheckerRegistry.resolve(anyString())).andReturn((i, l) -> false).times(1);
+        expect(statusCheckerRegistry.resolve(anyString())).andReturn((i, l) -> {
+            cdlTransferProcessManager.countDown();
+            return false;
+        }).times(1);
         replay(statusCheckerRegistry);
 
         TransferProcessListener listener = mock(TransferProcessListener.class);
         listener.error(anyObject(TransferProcess.class));
         expectLastCall().andAnswer(() -> {
-            cdl.countDown();
+            cdlWatchdog.countDown();
             return null;
         });
         replay(listener);
@@ -539,7 +543,9 @@ class TransferProcessManagerImplConsumerTest {
         transferProcessManager.cancelTransferProcess(process.getId());
 
         //assert
-        assertThat(cdl.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        // - wait for both watchdog and transfer process manager to loop once
+        assertThat(cdlWatchdog.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        assertThat(cdlTransferProcessManager.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
         verify(processStoreMock);
         verify(statusCheckerRegistry);
         assertThat(process.getState()).describedAs("State should be ERROR").isEqualTo(TransferProcessStates.ERROR.code());
