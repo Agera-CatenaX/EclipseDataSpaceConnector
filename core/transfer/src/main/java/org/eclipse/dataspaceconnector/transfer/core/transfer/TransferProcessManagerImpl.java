@@ -92,6 +92,13 @@ public class TransferProcessManagerImpl extends TransferProcessObservable implem
         return initiateRequest(PROVIDER, dataRequest);
     }
 
+    @Override
+    public void cancelTransferProcess(String processId) {
+        TransferProcess process = transferProcessStore.find(processId);
+        process.transitionError("Cancelled");
+        transferProcessStore.update(process);
+        invokeForEach(l -> l.error(process));
+    }
 
     private TransferInitiateResponse initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
         // make the request idempotent: if the process exists, return

@@ -16,6 +16,7 @@ package org.eclipse.dataspaceconnector.transfer.core.transfer;
 
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
+import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ProvisionManager;
 import org.eclipse.dataspaceconnector.spi.transfer.provision.ResourceManifestGenerator;
@@ -494,6 +495,60 @@ class TransferProcessManagerImplConsumerTest {
             assertThat(storedProcess).describedAs("Should exist in the TransferProcessStore").isNotNull();
             assertThat(storedProcess.getState()).isEqualTo(TransferProcessStates.PROVISIONING.code());
         });
+    }
+
+    @Test
+    void cancelTransferProcess_changesStateToError() throws InterruptedException {
+        //arrange
+        TransferProcess process = createTransferProcess(TransferProcessStates.IN_PROGRESS);
+        process.getProvisionedResourceSet().addResource(new TestResource());
+
+        var cdlTransferProcessManager = new CountDownLatch(1);
+        var cdlWatchdog = new CountDownLatch(1);
+
+        // prepare process store
+        // - TransferProcessManager main loop
+        TransferProcessStore processStoreMock = mock(TransferProcessStore.class);
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.INITIAL.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.PROVISIONED.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.REQUESTED_ACK.code()), anyInt())).andReturn(Collections.emptyList());
+        expect(processStoreMock.nextForState(eq(TransferProcessStates.IN_PROGRESS.code()), anyInt())).andReturn(Collections.singletonList(process));
+        expect(processStoreMock.nextForState(anyInt(), anyInt())).andReturn(Collections.emptyList()).anyTimes();
+
+        // - Cancel process
+        expect(processStoreMock.find(process.getId())).andReturn(process);
+        process.transitionError("Cancelled");
+        processStoreMock.update(process);
+        replay(processStoreMock);
+
+        // prepare statuschecker registry
+        expect(statusCheckerRegistry.resolve(anyString())).andReturn((i, l) -> {
+            cdlTransferProcessManager.countDown();
+            return false;
+        }).times(1);
+        replay(statusCheckerRegistry);
+
+        TransferProcessListener listener = mock(TransferProcessListener.class);
+        listener.error(anyObject(TransferProcess.class));
+        expectLastCall().andAnswer(() -> {
+            cdlWatchdog.countDown();
+            return null;
+        });
+        replay(listener);
+        transferProcessManager.registerListener(listener);
+
+        //act
+        // - start process and cancel it right away
+        transferProcessManager.start(processStoreMock);
+        transferProcessManager.cancelTransferProcess(process.getId());
+
+        //assert
+        // - wait for both watchdog and transfer process manager to loop once
+        assertThat(cdlWatchdog.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        assertThat(cdlTransferProcessManager.await(TIMEOUT, TimeUnit.SECONDS)).isTrue();
+        verify(processStoreMock);
+        verify(statusCheckerRegistry);
+        assertThat(process.getState()).describedAs("State should be ERROR").isEqualTo(TransferProcessStates.ERROR.code());
     }
 
     private TransferProcess createTransferProcess(TransferProcessStates inState) {
