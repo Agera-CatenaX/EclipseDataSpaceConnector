@@ -153,7 +153,7 @@ resource "azurerm_key_vault_certificate" "demo-main-identity-cert" {
   ]
 }
 
-# Retrieve the Certificate for the PRS Connector Consumer from the central Key Vault.
+# Retrieve the Certificate from the Key Vault.
 # Note that the data source is actually a Certificate in Key Vault, and not a Secret.
 # However this actually works, and retrieves the Certificate base64 encoded.
 # An advantage of this method is that the "Key Vault Secrets User" (read-only)
