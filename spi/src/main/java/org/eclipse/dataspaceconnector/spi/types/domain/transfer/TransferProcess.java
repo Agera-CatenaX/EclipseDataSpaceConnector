@@ -160,7 +160,7 @@ public class TransferProcess {
 
     public void transitionRequestAck() {
         if (Type.PROVIDER == type) {
-            throw new IllegalStateException("Provider processes have no REQUESTED state");
+            throw new IllegalStateException("Provider processes have no REQUESTED_ACK state");
         }
         transition(TransferProcessStates.REQUESTED_ACK, TransferProcessStates.REQUESTED);
     }

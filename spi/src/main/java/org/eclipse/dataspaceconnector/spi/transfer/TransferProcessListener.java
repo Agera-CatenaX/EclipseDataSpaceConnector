@@ -115,4 +115,22 @@ public interface TransferProcessListener {
      */
     default void requested(TransferProcess process) {
     }
+
+    /**
+     * Called after a {@link TransferProcess} has moved to state
+     * {@link TransferProcessStates#REQUESTED_ACK REQUESTED_ACK}.
+     *
+     * @param process the transfer process whose state has changed.
+     */
+    default void requestAck(TransferProcess process) {
+    }
+
+    /**
+     * Called after a {@link TransferProcess} has moved to state
+     * {@link TransferProcessStates#DEPROVISIONING_REQ DEPROVISIONING_REQ}.
+     *
+     * @param process the transfer process whose state has changed.
+     */
+    default void deprovisioningRequested(TransferProcess process) {
+    }
 }

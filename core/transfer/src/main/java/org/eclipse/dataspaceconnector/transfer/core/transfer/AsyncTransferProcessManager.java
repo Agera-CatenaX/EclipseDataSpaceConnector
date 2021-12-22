@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
@@ -126,22 +127,19 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
     @Override
     public void transitionRequestAck(String processId) {
         TransferProcess transferProcess = transferProcessStore.find(processId);
-        transferProcess.transitionRequestAck();
-        transferProcessStore.update(transferProcess);
+        updateState(transferProcess, p -> p.transitionRequestAck(), (p, l) -> l.requestAck(p));
     }
 
     @Override
     public void transitionProvisioned(String processId) {
         TransferProcess transferProcess = transferProcessStore.find(processId);
-        transferProcess.transitionProvisioned();
-        transferProcessStore.update(transferProcess);
+        updateState(transferProcess, p -> p.transitionProvisioned(), (p, l) -> l.provisioned(p));
     }
 
     @Override
     public void transitionError(String processId, String detail) {
         TransferProcess transferProcess = transferProcessStore.find(processId);
-        transferProcess.transitionError(detail);
-        transferProcessStore.update(transferProcess);
+        updateState(transferProcess, p -> p.transitionError(detail), (p, l) -> l.error(p));
     }
 
     @Override
@@ -155,12 +153,26 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             monitor.info("Request already deprovisioning or deprovisioned.");
         } else {
             monitor.info("starting to deprovision data request " + processId);
-            process.transitionCompleted();
-            process.transitionDeprovisionRequested();
-            transferProcessStore.update(process);
+            updateState(process, p -> p.transitionCompleted(), (p, l) -> l.completed(p));
+            updateState(process, p -> p.transitionDeprovisionRequested(), (p, l) -> l.deprovisioningRequested(p));
         }
 
         return Result.success(TransferProcessStates.from(process.getState()));
+    }
+
+    private void updateState(TransferProcess process, Consumer<TransferProcess> update, BiConsumer<TransferProcess, TransferProcessListener> listen) {
+        update.accept(process);
+        invokeForEach(l -> listen.accept(process, l));
+        transferProcessStore.update(process);
+    }
+
+    private void startProgress(TransferProcess process) {
+        if (process.getDataRequest().getTransferType().isFinite()) {
+            updateState(process, p -> p.transitionInProgress(), (p, l) -> l.inProgress(p));
+        } else {
+            updateState(process, p -> p.transitionStreaming(), (p, l) -> l.inProgress(p));
+        }
+        monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
     }
 
     private TransferInitiateResult initiateRequest(TransferProcess.Type type, DataRequest dataRequest) {
@@ -171,11 +183,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         }
         var id = randomUUID().toString();
         var process = TransferProcess.Builder.newInstance().id(id).dataRequest(dataRequest).type(type).build();
-        if (process.getState() == TransferProcessStates.UNSAVED.code()) {
-            process.transitionInitial();
-        }
-        transferProcessStore.create(process);
-        invokeForEach(l -> l.created(process));
+            updateState(process, p -> p.transitionInitial(), (p, l) -> l.created(p));
         return TransferInitiateResult.success(process.getId());
     }
 
@@ -223,10 +231,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         var deprovisionedProcesses = transferProcessStore.nextForState(DEPROVISIONED.code(), batchSize);
 
         for (var process : deprovisionedProcesses) {
-            invokeForEach(l -> l.deprovisioned(process));
-            process.transitionEnded();
-            transferProcessStore.update(process);
-            invokeForEach(l -> l.ended(process));
+            updateState(process, p -> p.transitionEnded(), (p, l) -> l.ended(p));
             monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
         }
         return deprovisionedProcesses.size();
@@ -242,14 +247,11 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         List<TransferProcess> processesDeprovisioning = transferProcessStore.nextForState(DEPROVISIONING_REQ.code(), batchSize);
 
         for (var process : processesDeprovisioning) {
-            process.transitionDeprovisioning();
-            transferProcessStore.update(process);
-            invokeForEach(l -> l.deprovisioning(process));
+            updateState(process, p -> p.transitionDeprovisioning(), (p, l) -> l.deprovisioning(p));
             monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
             List<ResponseStatus> deprovisionResults = provisionManager.deprovision(process);
             if (deprovisionResults.stream().anyMatch(status -> status != ResponseStatus.OK)) {
-                process.transitionError("Error during deprovisioning");
-                transferProcessStore.update(process);
+                updateState(process, p -> p.transitionError("Error during deprovisioning"), (p, l) -> l.error(p));
             }
         }
 
@@ -269,14 +271,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             // process must either have a non-empty list of provisioned resources, or not have managed resources at all.
             if (!process.getDataRequest().isManagedResources() || (process.getProvisionedResourceSet() != null && !process.getProvisionedResourceSet().empty())) {
 
-                if (process.getDataRequest().getTransferType().isFinite()) {
-                    process.transitionInProgress();
-                } else {
-                    process.transitionStreaming();
-                }
-                transferProcessStore.update(process);
-                invokeForEach(l -> l.inProgress(process));
-                monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.from(process.getState()));
+                startProgress(process);
             } else {
                 monitor.debug("Process " + process.getId() + " does not yet have provisioned resources, will stay in " + TransferProcessStates.REQUESTED_ACK);
             }
@@ -322,10 +317,8 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
     }
 
     private void transitionToCompleted(TransferProcess process) {
-        process.transitionCompleted();
+        updateState(process, p -> p.transitionCompleted(), (p, l) -> l.completed(p));
         monitor.debug("Process " + process.getId() + " is now " + TransferProcessStates.COMPLETED);
-        transferProcessStore.update(process);
-        invokeForEach(listener -> listener.completed(process));
     }
 
     /**
@@ -345,13 +338,10 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             } else {
                 manifest = manifestGenerator.generateProviderManifest(process);
             }
-            process.transitionProvisioning(manifest);
-            transferProcessStore.update(process);
-            invokeForEach(l -> l.provisioning(process));
+            updateState(process, p -> p.transitionProvisioning(manifest), (p, l) -> l.provisioning(p));
             if (process.getResourceManifest().getDefinitions().isEmpty()) {
                 // no resources to provision, advance state
-                process.transitionProvisioned();
-                transferProcessStore.update(process);
+                updateState(process, p -> p.transitionProvisioned(), (p, l) -> l.provisioned(p));
             } else {
                 provisionManager.provision(process);
             }
@@ -370,9 +360,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
         for (TransferProcess process : processes) {
             DataRequest dataRequest = process.getDataRequest();
             if (CONSUMER == process.getType()) {
-                process.transitionRequested();
-                transferProcessStore.update(process);   // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
-                invokeForEach(l -> l.requested(process));
+                updateState(process, p -> p.transitionRequested(), (p, l) -> l.requested(p)); // update before sending to accommodate synchronous transports; reliability will be managed by retry and idempotency
                 dispatcherRegistry.send(Object.class, dataRequest, process::getId).whenComplete((o, throwable) -> {
                     if (o != null) {
                         monitor.info("Object received: " + o.toString());
@@ -381,24 +369,14 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
             } else {
                 var response = dataFlowManager.initiate(dataRequest);
                 if (response.succeeded()) {
-                    if (process.getDataRequest().getTransferType().isFinite()) {
-                        process.transitionInProgress();
-                    } else {
-                        process.transitionStreaming();
-                    }
-                    transferProcessStore.update(process);
-                    invokeForEach(l -> l.inProgress(process));
+                    startProgress(process);
                 } else {
                     if (ResponseStatus.ERROR_RETRY == response.getFailure().status()) {
                         monitor.severe("Error processing transfer request. Setting to retry: " + process.getId());
-                        process.transitionProvisioned();
-                        transferProcessStore.update(process);
-                        invokeForEach(l -> l.provisioned(process));
+                        updateState(process, p -> p.transitionProvisioned(), (p, l) -> l.provisioned(p));
                     } else { //ERROR_FATAL
                         monitor.severe(format("Fatal error processing transfer request: %s. Error details: %s", process.getId(), String.join(", ", response.getFailureMessages())));
-                        process.transitionError(response.getFailureMessages().stream().findFirst().orElse(""));
-                        transferProcessStore.update(process);
-                        invokeForEach(l -> l.error(process));
+                        updateState(process, p -> p.transitionError(response.getFailureMessages().stream().findFirst().orElse("")), (p, l) -> l.error(p));
                     }
                 }
             }
@@ -495,8 +473,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
 
             TransferProcess transferProcess = transferProcessStore.find(resource.getTransferProcessId());
             if (transferProcess != null) {
-                transferProcess.transitionDeprovisioned();
-                transferProcessStore.update(transferProcess);
+                updateState(transferProcess, p -> p.transitionDeprovisioned(), (p, l) -> l.deprovisioned(p));
                 monitor.debug("Process " + transferProcess.getId() + " is now " + TransferProcessStates.from(transferProcess.getState()));
             } else {
                 monitor.severe("ProvisionManager: no TransferProcess found for deprovisioned resource");
@@ -551,7 +528,7 @@ public class AsyncTransferProcessManager extends TransferProcessObservable imple
 
         if (TransferProcessStates.ERROR.code() != transferProcess.getState() && transferProcess.provisioningComplete()) {
             // TODO If all resources provisioned, delete scratch data
-            transferProcess.transitionProvisioned();
+            updateState(transferProcess, p -> p.transitionProvisioned(), (p, l) -> l.provisioned(p));
         }
         transferProcessStore.update(transferProcess);
     }
