@@ -1,0 +1,28 @@
+version: '3.8'
+
+services:
+  azurite:
+    container_name: azurite
+    image: mcr.microsoft.com/azure-storage/azurite:latest
+    ports:
+      - 10000:10000
+    environment:
+      - AZURITE_ACCOUNTS=account1:key1
+
+  minio:
+    container_name: minio
+    image: bitnami/minio:latest
+    ports:
+      - 9000:9000
+    environment:
+      - MINIO_ACCESS_KEY=root
+      - MINIO_SECRET_KEY=password
+
+  omejdn:
+    container_name: omejdn-server
+    image: ghcr.io/fraunhofer-aisec/omejdn-server:1.2.1
+    ports:
+      - 4567:4567
+    volumes:
+      - ./extensions/iam/daps/src/test/resources/config:/opt/config
+      - ./extensions/iam/daps/src/test/resources/keys:/opt/keys
