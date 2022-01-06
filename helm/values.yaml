@@ -1,0 +1,6 @@
+image:
+  repository: connector
+  tag: latest
+  pullPolicy: Never # Should be set to `Never` if using a local image
+container:
+  port: 8081

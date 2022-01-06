@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: edc-connector
+  labels:
+    app.kubernetes.io/name: edc-connector
+    app.kubernetes.io/part-of: edc-connector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: edc-connector
+  serviceName: "edc-connector"
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: edc-connector
+    spec:
+      containers:
+        - name: connector
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: "{{ .Values.image.pullPolicy }}"
+          ports:
+            - containerPort: {{ .Values.container.port }}
+              name: http
