@@ -14,7 +14,6 @@
 
 package org.eclipse.dataspaceconnector.transfer.store.cosmos;
 
-import com.azure.cosmos.ConsistencyLevel;
 import com.azure.cosmos.CosmosClientBuilder;
 import com.azure.cosmos.CosmosContainer;
 import com.azure.cosmos.CosmosDatabase;
@@ -43,10 +42,20 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
+import org.testcontainers.containers.CosmosDBEmulatorContainer;
+import org.testcontainers.utility.DockerImageName;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.security.KeyStore;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 import java.time.temporal.ChronoUnit;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
@@ -55,14 +64,12 @@ import java.util.stream.Collectors;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.eclipse.dataspaceconnector.common.configuration.ConfigurationFunctions.propOrEnv;
 import static org.eclipse.dataspaceconnector.transfer.store.cosmos.TestHelper.createTransferProcess;
 
 @IntegrationTest
 class CosmosTransferProcessStoreIntegrationTest {
 
     private static final String TEST_ID = UUID.randomUUID().toString();
-    private static final String ACCOUNT_NAME = "cosmos-itest";
     private static final String DATABASE_NAME = "transferprocessstore-itest_" + TEST_ID;
     private static final String CONTAINER_PREFIX = "container_";
     private static CosmosContainer container;
@@ -71,22 +78,36 @@ class CosmosTransferProcessStoreIntegrationTest {
     private final String connectorId = "test-connector";
     private CosmosTransferProcessStore store;
     private TypeManager typeManager;
+    @TempDir
+    static File tempFolder;
+    static CosmosDBEmulatorContainer emulator;
 
     @BeforeAll
-    static void prepareCosmosClient() {
+    public static void prepareCosmosClient() throws IOException, CertificateException, KeyStoreException, NoSuchAlgorithmException {
 
-        var key = propOrEnv("COSMOS_KEY", null);
-        if (key != null) {
-            var client = new CosmosClientBuilder()
-                    .key(key)
-                    .preferredRegions(Collections.singletonList("westeurope"))
-                    .consistencyLevel(ConsistencyLevel.SESSION)
-                    .endpoint("https://" + ACCOUNT_NAME + ".documents.azure.com:443/")
-                    .buildClient();
+        //TestContainer CosmosDb Emulator.
+        emulator = new CosmosDBEmulatorContainer(DockerImageName.parse("mcr.microsoft.com/cosmosdb/linux/azure-cosmos-emulator"));
+        emulator.start();
 
-            CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
-            database = client.getDatabase(response.getProperties().getId());
-        }
+        //Prepare KeyStore to use for SSL.
+        Path keyStoreFile = new File(tempFolder, "azure-cosmos-emulator.keystore").toPath();
+        KeyStore keyStore = emulator.buildNewKeyStore();
+        keyStore.store(new FileOutputStream(keyStoreFile.toFile()), emulator.getEmulatorKey().toCharArray());
+
+        // Set system trust-store parameters to use already built KeyStore.
+        System.setProperty("javax.net.ssl.trustStore", keyStoreFile.toString());
+        System.setProperty("javax.net.ssl.trustStorePassword", emulator.getEmulatorKey());
+        System.setProperty("javax.net.ssl.trustStoreType", "PKCS12");
+
+        var client = new CosmosClientBuilder()
+                .gatewayMode()
+                .endpointDiscoveryEnabled(false)
+                .endpoint(emulator.getEmulatorEndpoint())
+                .key(emulator.getEmulatorKey())
+                .buildClient();
+
+        CosmosDatabaseResponse response = client.createDatabaseIfNotExists(DATABASE_NAME);
+        database = client.getDatabase(response.getProperties().getId());
     }
 
     @AfterAll
@@ -94,6 +115,9 @@ class CosmosTransferProcessStoreIntegrationTest {
         if (database != null) {
             var response = database.delete();
             assertThat(response.getStatusCode()).isBetween(200, 400);
+        }
+        if(emulator != null) {
+            emulator.stop();
         }
     }
 

@@ -25,6 +25,7 @@ dependencies {
     api(project(":extensions:azure:cosmos-common"))
 
     testImplementation(testFixtures(project(":common:util")))
+    testImplementation("org.testcontainers:azure:1.16.2")
 }
 
 
