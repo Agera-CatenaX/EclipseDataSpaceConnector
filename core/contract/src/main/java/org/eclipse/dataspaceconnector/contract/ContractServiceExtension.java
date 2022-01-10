@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.contract;
 
 import org.eclipse.dataspaceconnector.contract.agent.ParticipantAgentServiceImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.ConsumerContractNegotiationManagerImpl;
+import org.eclipse.dataspaceconnector.contract.negotiation.ContractNegotiationStoreTracingDecorator;
 import org.eclipse.dataspaceconnector.contract.negotiation.ProviderContractNegotiationManagerImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractDefinitionServiceImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
@@ -82,8 +83,9 @@ public class ContractServiceExtension implements ServiceExtension {
     public void start() {
         // Start negotiation managers.
         var negotiationStore = context.getService(ContractNegotiationStore.class);
-        consumerNegotiationManager.start(negotiationStore);
-        providerNegotiationManager.start(negotiationStore);
+        var decorated = new ContractNegotiationStoreTracingDecorator(negotiationStore);
+        consumerNegotiationManager.start(decorated);
+        providerNegotiationManager.start(decorated);
     }
 
     @Override

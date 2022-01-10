@@ -14,6 +14,12 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Context;
+import io.opentelemetry.context.Scope;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
@@ -39,6 +45,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static io.opentelemetry.api.trace.StatusCode.ERROR;
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.parseContractId;
@@ -48,6 +55,10 @@ import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.N
  * Implementation of the {@link ProviderContractNegotiationManager}.
  */
 public class ProviderContractNegotiationManagerImpl implements ProviderContractNegotiationManager {
+
+    private final OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
+    private final Tracer tracer = openTelemetry.getTracer("edc");
+    private static ContractNegotiationTraceContextMapper traceContextMapper = new ContractNegotiationTraceContextMapper();
 
     private final AtomicBoolean active = new AtomicBoolean();
 
@@ -121,6 +132,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
      */
     @Override
     public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
+        Span span = tracer.spanBuilder("negotiation requested").startSpan();
+        try (Scope scope = span.makeCurrent()) {
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .correlationId(request.getCorrelationId())
@@ -132,12 +145,19 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .stateTimestamp(Instant.now().toEpochMilli())
                 .type(ContractNegotiation.Type.PROVIDER)
                 .build();
+        openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), negotiation, traceContextMapper);
 
         negotiationStore.save(negotiation);
         monitor.debug(String.format("[Provider] ContractNegotiation initiated. %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
         return processIncomingOffer(negotiation, token, request.getContractOffer());
+        } catch (Throwable t) {
+            span.setStatus(ERROR, "Error processing negotiation");
+            throw t;
+        } finally {
+            span.end(); // closing the scope does not end the span, this has to be done manually
+        }
     }
 
     /**
@@ -360,6 +380,13 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         var confirmingNegotiations = negotiationStore.nextForState(ContractNegotiationStates.CONFIRMING.code(), batchSize);
 
         for (var negotiation : confirmingNegotiations) {
+            Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
+                    .extract(Context.current(), negotiation, traceContextMapper);
+            try (Scope scope = extractedContext.makeCurrent()) {
+                // Automatically use the extracted SpanContext as parent.
+                Span span = tracer.spanBuilder("processing confirming negotiation").startSpan();
+                try {
+
             var agreement = negotiation.getContractAgreement(); // TODO build agreement
 
             if (agreement == null) {
@@ -409,6 +436,10 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             negotiationStore.save(negotiation);
             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+            } finally {
+                span.end();
+            }
+            }
         }
 
         return confirmingNegotiations.size();
