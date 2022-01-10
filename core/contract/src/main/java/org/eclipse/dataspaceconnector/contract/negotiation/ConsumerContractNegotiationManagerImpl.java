@@ -14,6 +14,11 @@
  */
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import io.opentelemetry.api.GlobalOpenTelemetry;
+import io.opentelemetry.api.OpenTelemetry;
+import io.opentelemetry.api.trace.Span;
+import io.opentelemetry.api.trace.Tracer;
+import io.opentelemetry.context.Scope;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
@@ -41,6 +46,7 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
 
+import static io.opentelemetry.api.trace.StatusCode.ERROR;
 import static java.lang.String.format;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.DEFINITION_PART;
 import static org.eclipse.dataspaceconnector.contract.common.ContractId.parseContractId;
@@ -57,6 +63,7 @@ import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.N
  */
 public class ConsumerContractNegotiationManagerImpl implements ConsumerContractNegotiationManager {
     private final AtomicBoolean active = new AtomicBoolean();
+    private final Tracer tracer;
     private ContractNegotiationStore negotiationStore;
     private ContractValidationService validationService;
 
@@ -68,6 +75,9 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     private RemoteMessageDispatcherRegistry dispatcherRegistry;
 
     public ConsumerContractNegotiationManagerImpl() {
+        OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
+
+        tracer = openTelemetry.getTracer("edc");
     }
 
     public void start(ContractNegotiationStore store) {
@@ -104,7 +114,15 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                 .build();
 
         negotiation.addContractOffer(contractOffer.getContractOffer());
-        negotiationStore.save(negotiation);
+        Span span = tracer.spanBuilder("saving negotiation").startSpan();
+        try (Scope scope = span.makeCurrent()) {
+            negotiationStore.save(negotiation);
+            span.addEvent("Saved");
+        } catch (Throwable t) {
+            span.setStatus(ERROR, "Error saving negotiation");
+        } finally {
+            span.end(); // closing the scope does not end the span, this has to be done manually
+        }
 
         monitor.debug(String.format("[Consumer] ContractNegotiation initiated. %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));

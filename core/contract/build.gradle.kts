@@ -24,6 +24,7 @@ dependencies {
     api("org.slf4j:slf4j-api:${slf4jVersion}")
     api(project(":core:base"))
     implementation(project(":core:policy:policy-engine"))
+    implementation("io.opentelemetry:opentelemetry-sdk:1.10.0")
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
 }
 

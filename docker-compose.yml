@@ -1,0 +1,120 @@
+version: "3.8"
+
+services:
+
+  #####
+  # Setup for Telemetry with Azure Application Insights.
+  # Connection string must be defined in .env file
+  #####
+
+  consumerA:
+    image: openjdk:11-jre-slim-buster
+    environment:
+      APPLICATIONINSIGHTS_CONNECTION_STRING: $APPLICATIONINSIGHTS_CONNECTION_STRING
+      APPLICATIONINSIGHTS_ROLE_NAME: consumer
+      edc.api.control.auth.apikey.value: password
+      ids.webhook.address: http://consumerA:8181
+    volumes:
+      - .:/app
+    entrypoint: java -javaagent:/app/applicationinsights-agent-3.2.4.jar -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
+
+  providerA:
+    image: openjdk:11-jre-slim-buster
+    environment:
+      APPLICATIONINSIGHTS_CONNECTION_STRING: $APPLICATIONINSIGHTS_CONNECTION_STRING
+      APPLICATIONINSIGHTS_ROLE_NAME: provider
+      edc.samples.04.asset.path: /tmp
+      ids.webhook.address: http://providerA:8181
+    volumes:
+      - .:/app
+    entrypoint: java -javaagent:/app/applicationinsights-agent-3.2.4.jar -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
+
+  connector-integration-testA:
+    image: adoptopenjdk:11-jre-hotspot
+    command: /connector-integration-test.sh providerA:8181 consumerA:8181
+    volumes:
+      - ./samples:/samples
+      - ./connector-integration-test.sh:/connector-integration-test.sh
+
+  #####
+  # Setup for Telemetry with Jaeger.
+  # Web interface can be accessed at http://localhost:16686
+  #####
+
+  consumerO:
+    image: openjdk:11-jre-slim-buster
+    environment:
+      OTEL_SERVICE_NAME: consumer
+      OTEL_TRACES_EXPORTER: jaeger
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14250
+      edc.api.control.auth.apikey.value: password
+      ids.webhook.address: http://consumerO:8181
+    volumes:
+      - .:/app
+    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
+
+  providerO:
+    image: openjdk:11-jre-slim-buster
+    environment:
+      OTEL_SERVICE_NAME: provider
+      OTEL_TRACES_EXPORTER: jaeger
+      OTEL_EXPORTER_JAEGER_ENDPOINT: http://jaeger:14250
+      edc.samples.04.asset.path: /tmp
+      ids.webhook.address: http://providerO:8181
+    volumes:
+      - .:/app
+    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
+
+  connector-integration-testO:
+    image: adoptopenjdk:11-jre-hotspot
+    command: /connector-integration-test.sh providerO:8181 consumerO:8181
+    volumes:
+      - ./samples:/samples
+      - ./connector-integration-test.sh:/connector-integration-test.sh
+
+  jaeger:
+    image: jaegertracing/all-in-one
+    ports:
+      - 16686:16686
+
+  #####
+  # Setup for Telemetry with Zipkin.
+  # Web interface can be accessed at http://localhost:9411
+  #####
+
+  consumerZ:
+    image: openjdk:11-jre-slim-buster
+    environment:
+      OTEL_SERVICE_NAME: consumer
+      OTEL_TRACES_EXPORTER: zipkin
+      OTEL_EXPORTER_ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
+      edc.api.control.auth.apikey.value: password
+      ids.webhook.address: http://consumerZ:8181
+    volumes:
+      - .:/app
+    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
+
+  providerZ:
+    image: openjdk:11-jre-slim-buster
+    environment:
+      OTEL_SERVICE_NAME: provider
+      OTEL_TRACES_EXPORTER: zipkin
+      OTEL_EXPORTER_ZIPKIN_ENDPOINT: http://zipkin:9411/api/v2/spans
+      edc.samples.04.asset.path: /tmp
+      ids.webhook.address: http://providerZ:8181
+    volumes:
+      - .:/app
+    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
+
+  connector-integration-testZ:
+    image: adoptopenjdk:11-jre-hotspot
+    command: /connector-integration-test.sh providerZ:8181 consumerZ:8181
+    volumes:
+      - ./samples:/samples
+      - ./connector-integration-test.sh:/connector-integration-test.sh
+
+  zipkin:
+    image: openzipkin/zipkin
+    ports:
+      - 9411:9411
+
