@@ -283,6 +283,9 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         var processes = negotiationStore.nextForState(ContractNegotiationStates.REQUESTING.code(), batchSize);
 
         for (ContractNegotiation process : processes) {
+            Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
+                    .extract(Context.current(), process, traceContextMapper);
+            extractedContext.makeCurrent();
             sendOffer(process);
         }
         return processes.size();
@@ -290,9 +293,6 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
     @WithSpan
     private void sendOffer(ContractNegotiation process) {
-        Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
-                .extract(Context.current(), process, traceContextMapper);
-        extractedContext.makeCurrent();
         var offer = process.getLastContractOffer();
         var response = sendOffer(offer, process, ContractOfferRequest.Type.INITIAL);
         if (response.isCompletedExceptionally()) {
