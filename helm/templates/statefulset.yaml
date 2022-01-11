@@ -22,3 +22,22 @@ spec:
           ports:
             - containerPort: {{ .Values.container.port }}
               name: http
+
+          readinessProbe:
+            initialDelaySeconds: 1
+            httpGet:
+              port: http
+              path: /api/check/readiness
+
+          livenessProbe:
+            initialDelaySeconds: 3
+            httpGet:
+              port: http
+              path: /api/check/liveness
+
+          startupProbe:
+            initialDelaySeconds: 10
+            failureThreshold: 7
+            httpGet:
+              port: http
+              path: /api/check/startup

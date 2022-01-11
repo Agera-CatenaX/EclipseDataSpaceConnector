@@ -7,11 +7,6 @@ metadata:
   name: edc-ingress
 
 spec:
-  defaultBackend:
-    service:
-      name: edc-ingress
-      port:
-        number: 80
   ingressClassName: {{ .Values.ingress.className }}
   rules:
     - host: {{ .Values.ingress.host }}
