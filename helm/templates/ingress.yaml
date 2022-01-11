@@ -19,3 +19,10 @@ spec:
                 name: edc
                 port:
                   number: 80
+          - path: {{ .Values.ingress.prefix }}/api/check
+            pathType: Prefix
+            backend:
+              service:
+                name: defaultbackend
+                port:
+                  number: 80
