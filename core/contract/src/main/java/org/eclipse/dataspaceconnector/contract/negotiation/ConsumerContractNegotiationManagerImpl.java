@@ -20,6 +20,7 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
@@ -282,33 +283,29 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         var processes = negotiationStore.nextForState(ContractNegotiationStates.REQUESTING.code(), batchSize);
 
         for (ContractNegotiation process : processes) {
-            Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
-                    .extract(Context.current(), process, traceContextMapper);
-            try (Scope scope = extractedContext.makeCurrent()) {
-            // Automatically use the extracted SpanContext as parent.
-            Span span = tracer.spanBuilder("processing negotiation").startSpan();
-            try {
+            sendOffer(process);
+        }
+        return processes.size();
+    }
 
-            var offer = process.getLastContractOffer();
-            var response = sendOffer(offer, process, ContractOfferRequest.Type.INITIAL);
-            if (response.isCompletedExceptionally()) {
-                process.transitionRequesting();
-                monitor.debug(format("[Consumer] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
-                        offer.getId(), process.getId(), ContractNegotiationStates.from(process.getState())));
-                continue;
-            }
+    @WithSpan
+    private void sendOffer(ContractNegotiation process) {
+        Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
+                .extract(Context.current(), process, traceContextMapper);
+        extractedContext.makeCurrent();
+        var offer = process.getLastContractOffer();
+        var response = sendOffer(offer, process, ContractOfferRequest.Type.INITIAL);
+        if (response.isCompletedExceptionally()) {
+            process.transitionRequesting();
+            monitor.debug(format("[Consumer] Failed to send contract offer with id %s. ContractNegotiation %s stays in state %s.",
+                    offer.getId(), process.getId(), ContractNegotiationStates.from(process.getState())));
 
+        } else {
             process.transitionRequested();
             monitor.debug(String.format("[Consumer] ContractNegotiation %s is now in state %s.",
                     process.getId(), ContractNegotiationStates.from(process.getState())));
-                negotiationStore.save(process);
-            } finally {
-                span.end();
-            }
-            }
+            negotiationStore.save(process);
         }
-
-        return processes.size();
     }
 
     /**

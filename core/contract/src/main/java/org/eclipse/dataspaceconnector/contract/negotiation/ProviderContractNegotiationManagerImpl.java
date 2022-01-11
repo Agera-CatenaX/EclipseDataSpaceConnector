@@ -20,6 +20,7 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.contract.common.ContractId;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.NegotiationWaitStrategy;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ProviderContractNegotiationManager;
@@ -130,10 +131,9 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
      * @param request Container object containing all relevant request parameters.
      * @return a {@link NegotiationResult}: OK
      */
+    @WithSpan
     @Override
     public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
-        Span span = tracer.spanBuilder("negotiation requested").startSpan();
-        try (Scope scope = span.makeCurrent()) {
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .correlationId(request.getCorrelationId())
@@ -152,12 +152,6 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
         return processIncomingOffer(negotiation, token, request.getContractOffer());
-        } catch (Throwable t) {
-            span.setStatus(ERROR, "Error processing negotiation");
-            throw t;
-        } finally {
-            span.end(); // closing the scope does not end the span, this has to be done manually
-        }
     }
 
     /**
