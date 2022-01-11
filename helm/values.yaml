@@ -1,6 +1,10 @@
 image:
-  repository: connector
-  tag: latest
-  pullPolicy: Never # Should be set to `Never` if using a local image
+  repository: <container-registry-repository>
+  tag: <image-tag>
+  pullPolicy: Always # Should be set to `Never` if using a local image
 container:
-  port: 8081
+  port: <edc-port>
+ingress:
+  host: <host>
+  className: <ingress-controller-ingress-class>
+  prefix: <ingress-path-prefix>
