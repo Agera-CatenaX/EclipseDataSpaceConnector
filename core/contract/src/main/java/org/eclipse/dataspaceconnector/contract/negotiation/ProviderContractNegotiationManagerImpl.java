@@ -57,7 +57,6 @@ import static org.eclipse.dataspaceconnector.spi.contract.negotiation.response.N
 public class ProviderContractNegotiationManagerImpl implements ProviderContractNegotiationManager {
 
     private final OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
-    private final Tracer tracer = openTelemetry.getTracer("edc");
     private static ContractNegotiationTraceContextMapper traceContextMapper = new ContractNegotiationTraceContextMapper();
 
     private final AtomicBoolean active = new AtomicBoolean();
@@ -130,7 +129,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
      * @param request Container object containing all relevant request parameters.
      * @return a {@link NegotiationResult}: OK
      */
-    @WithSpan
+    @WithSpan(value = "negotiation requested")
     @Override
     public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
         var negotiation = ContractNegotiation.Builder.newInstance()
@@ -375,67 +374,63 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         for (var negotiation : confirmingNegotiations) {
             Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
                     .extract(Context.current(), negotiation, traceContextMapper);
-            try (Scope scope = extractedContext.makeCurrent()) {
+            extractedContext.makeCurrent();
                 // Automatically use the extracted SpanContext as parent.
-                Span span = tracer.spanBuilder("processing confirming negotiation").startSpan();
-                try {
+            negotiate(negotiation);
+        }
+        return confirmingNegotiations.size();
+    }
 
-            var agreement = negotiation.getContractAgreement(); // TODO build agreement
+    @WithSpan(value = "processing confirming negotiation")
+    private void negotiate(ContractNegotiation negotiation) {
+        var agreement = negotiation.getContractAgreement(); // TODO build agreement
 
-            if (agreement == null) {
-                var lastOffer = negotiation.getLastContractOffer();
+        if (agreement == null) {
+            var lastOffer = negotiation.getLastContractOffer();
 
-                var contractIdTokens = parseContractId(lastOffer.getId());
-                if (contractIdTokens.length != 2) {
-                    monitor.severe("ProviderContractNegotiationManagerImpl.checkConfirming(): Offer Id not correctly formatted.");
-                    continue;
-                }
-                var definitionId = contractIdTokens[DEFINITION_PART];
-
-                //TODO move to own service
-                agreement = ContractAgreement.Builder.newInstance()
-                        .id(ContractId.createContractId(definitionId))
-                        .contractEndDate(Instant.now().getEpochSecond() + 60 * 60 /* Five Minutes */) // TODO
-                        .contractSigningDate(Instant.now().getEpochSecond() - 60 * 5 /* Five Minutes */)
-                        .contractStartDate(Instant.now().getEpochSecond())
-                        .providerAgentId(String.valueOf(lastOffer.getProvider()))
-                        .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
-                        .policy(lastOffer.getPolicy())
-                        .asset(lastOffer.getAsset())
-                        .build();
+            var contractIdTokens = parseContractId(lastOffer.getId());
+            if (contractIdTokens.length != 2) {
+                monitor.severe("ProviderContractNegotiationManagerImpl.checkConfirming(): Offer Id not correctly formatted.");
+                return;
             }
+            var definitionId = contractIdTokens[DEFINITION_PART];
 
-            ContractAgreementRequest request = ContractAgreementRequest.Builder.newInstance()
-                    .protocol(negotiation.getProtocol())
-                    .connectorId(negotiation.getCounterPartyId())
-                    .connectorAddress(negotiation.getCounterPartyAddress())
-                    .contractAgreement(agreement)
-                    .correlationId(negotiation.getCorrelationId())
+            //TODO move to own service
+            agreement = ContractAgreement.Builder.newInstance()
+                    .id(ContractId.createContractId(definitionId))
+                    .contractEndDate(Instant.now().getEpochSecond() + 60 * 60 /* Five Minutes */) // TODO
+                    .contractSigningDate(Instant.now().getEpochSecond() - 60 * 5 /* Five Minutes */)
+                    .contractStartDate(Instant.now().getEpochSecond())
+                    .providerAgentId(String.valueOf(lastOffer.getProvider()))
+                    .consumerAgentId(String.valueOf(lastOffer.getConsumer()))
+                    .policy(lastOffer.getPolicy())
+                    .asset(lastOffer.getAsset())
                     .build();
+        }
 
-            //TODO protocol-independent response type?
-            var response = dispatcherRegistry.send(Object.class, request, () -> null);
+        ContractAgreementRequest request = ContractAgreementRequest.Builder.newInstance()
+                .protocol(negotiation.getProtocol())
+                .connectorId(negotiation.getCounterPartyId())
+                .connectorAddress(negotiation.getCounterPartyAddress())
+                .contractAgreement(agreement)
+                .correlationId(negotiation.getCorrelationId())
+                .build();
 
-            if (response.isCompletedExceptionally()) {
-                negotiation.transitionConfirming();
-                negotiationStore.save(negotiation);
-                monitor.debug(format("[Provider] Failed to send contract agreement with id %s. ContractNegotiation %s stays in state %s.",
-                        agreement.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-                continue;
-            }
+        //TODO protocol-independent response type?
+        var response = dispatcherRegistry.send(Object.class, request, () -> null);
 
+        if (response.isCompletedExceptionally()) {
+            negotiation.transitionConfirming();
+            negotiationStore.save(negotiation);
+            monitor.debug(format("[Provider] Failed to send contract agreement with id %s. ContractNegotiation %s stays in state %s.",
+                    agreement.getId(), negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
+        } else {
             negotiation.setContractAgreement(agreement);
             negotiation.transitionConfirmed();
             negotiationStore.save(negotiation);
             monitor.debug(String.format("[Provider] ContractNegotiation %s is now in state %s.",
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
-            } finally {
-                span.end();
-            }
-            }
         }
-
-        return confirmingNegotiations.size();
     }
 
     /**

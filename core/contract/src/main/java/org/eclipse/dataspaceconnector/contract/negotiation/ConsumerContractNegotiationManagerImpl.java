@@ -287,7 +287,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
         return processes.size();
     }
 
-    @WithSpan
+    @WithSpan(value = "processing negotiation")
     private void sendOffer(ContractNegotiation process) {
         var offer = process.getLastContractOffer();
         var response = sendOffer(offer, process, ContractOfferRequest.Type.INITIAL);

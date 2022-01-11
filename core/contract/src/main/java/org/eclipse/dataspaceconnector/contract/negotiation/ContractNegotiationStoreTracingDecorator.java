@@ -21,6 +21,7 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
+import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
@@ -59,19 +60,15 @@ public class ContractNegotiationStoreTracingDecorator implements ContractNegotia
         return delegate.findContractAgreement(contractId);
     }
 
+    @WithSpan(value = "saving negotiation in state")
     @Override
     public void save(ContractNegotiation negotiation) {
-        Span span = tracer.spanBuilder("saving negotiation in state " + getStateName(negotiation)).startSpan();
-        try (Scope scope = span.makeCurrent()) {
-            openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), negotiation, traceContextMapper);
-            delegate.save(negotiation);
-            span.addEvent("Saved", Attributes.builder().put("State", getStateName(negotiation)).build());
-        } catch (Throwable t) {
-            span.setStatus(ERROR, "Error saving negotiation");
-            throw t;
-        } finally {
-            span.end(); // closing the scope does not end the span, this has to be done manually
-        }
+        Span span = Span.current();
+        span.setAttribute("negotiationState", getStateName(negotiation));
+        // span.makeCurrent();
+        openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), negotiation, traceContextMapper);
+        delegate.save(negotiation);
+        span.addEvent("Saved", Attributes.builder().put("State", getStateName(negotiation)).build());
     }
 
     private String getStateName(ContractNegotiation negotiation) {
