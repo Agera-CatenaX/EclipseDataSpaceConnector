@@ -23,8 +23,8 @@ docker-compose up
 
 The docker-compose file spins multiple containers to demonstrate multiple telemetry backends:
 - Azure Monitor [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) cloud-native Application Performance Management (APM) service
-- [Jaeger](https://www.jaegertracing.io/) open-source distributed tracing system (at [http://localhost:16686](http://localhost:16686))
-- [Zipkin](https://zipkin.io/) open-source distributed tracing system (at [http://localhost:9411](http://localhost:9411))
+- [Jaeger](https://www.jaegertracing.io/) open-source distributed tracing system (at [http://localhost:16686](http://localhost:16686)), created at Uber and donated to Cloud Native Computing Foundation
+- [Zipkin](https://zipkin.io/) open-source distributed tracing system (at [http://localhost:9411](http://localhost:9411)), created at Twitter based on Google Dapper
 
 It also starts containers to fire cURL requests to initiate a contract negotiation process on the consumer connector. This causes EDC to send an HTTP request from the consumer to the provider connector, followed by another message from the provider to the consumer connector. See [the sample README file](samples/04-file-transfer//README.md) for more information about the negotiation process.
 
@@ -140,6 +140,17 @@ private final OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
 
 Of course, in a production setup we would modularize these components properly, separating API and SDK usage and allowing the application developer to inject their preferred  instance of `OpenTelemetry`, following the [OpenTelemetry Java guidelines](https://opentelemetry.io/docs/instrumentation/java/manual_instrumentation/).
 
+#### Events
+
+Spans can be annotated with events, that can themselves have attributes.
+
+```java
+span.addEvent("Saved", Attributes.builder().put("negotiationState", getStateName(negotiation)).build());
+```
+
+In one scenario, we demonstrate the use of an event to capture the object state after the persistence layer modified it within the current span:
+
+![Event in Jaeger](.attachments/jaeger-event.png)
 
 ## Features shown in the spike
 

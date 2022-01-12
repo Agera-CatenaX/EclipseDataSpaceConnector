@@ -67,7 +67,7 @@ public class ContractNegotiationStoreTracingDecorator implements ContractNegotia
         span.setAttribute("negotiationState", getStateName(negotiation));
         openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), negotiation, traceContextMapper);
         delegate.save(negotiation);
-        span.addEvent("Saved", Attributes.builder().put("State", getStateName(negotiation)).build());
+        span.addEvent("Saved", Attributes.builder().put("negotiationState", getStateName(negotiation)).build());
     }
 
     private String getStateName(ContractNegotiation negotiation) {
