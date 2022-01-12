@@ -1,7 +1,7 @@
 image:
   repository: <container-registry-repository>
   tag: <image-tag>
-  pullPolicy: Always # Should be set to `Never` if using a local image
+  pullPolicy: IfNotPresent # Should be set to `Never` if using a local image
 container:
   port: <edc-port>
 ingress:
