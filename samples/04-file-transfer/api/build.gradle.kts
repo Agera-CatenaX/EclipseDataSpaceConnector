@@ -23,6 +23,7 @@ val rsApi: String by project
 dependencies {
     api(project(":spi"))
     implementation(project(":common:util"))
+    implementation(project(":core:contract"))
 
     api("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 }

@@ -23,6 +23,7 @@ import jakarta.ws.rs.Produces;
 import jakarta.ws.rs.QueryParam;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
+import org.eclipse.dataspaceconnector.contract.negotiation.MetricsSingleton;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
@@ -77,7 +78,7 @@ public class ConsumerApiController {
                 .build();
 
         var result = consumerNegotiationManager.initiate(contractOfferRequest);
-        if (result.getFailure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
+        if (result.getFailure() != null && result.getFailure().getStatus() == NegotiationResult.Status.FATAL_ERROR) {
             return Response.serverError().build();
         }
 
@@ -112,5 +113,11 @@ public class ConsumerApiController {
         
         return result.failed() ? Response.status(400).build() : Response.ok(result.getContent()).build();
     }
-}
 
+    @GET
+    @Produces({MediaType.TEXT_PLAIN})
+    @Path("/metrics")
+    public String getMetrics() {
+        return MetricsSingleton.scrape();
+    }
+}

@@ -15,8 +15,13 @@
 
 package org.eclipse.dataspaceconnector.contract;
 
+import io.micrometer.core.instrument.Metrics;
+import io.micrometer.prometheus.PrometheusConfig;
+import io.micrometer.prometheus.PrometheusMeterRegistry;
 import org.eclipse.dataspaceconnector.contract.agent.ParticipantAgentServiceImpl;
 import org.eclipse.dataspaceconnector.contract.negotiation.ConsumerContractNegotiationManagerImpl;
+import org.eclipse.dataspaceconnector.contract.negotiation.ContractNegotiationStoreMetricsDecorator;
+import org.eclipse.dataspaceconnector.contract.negotiation.MetricsSingleton;
 import org.eclipse.dataspaceconnector.contract.negotiation.ProviderContractNegotiationManagerImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractDefinitionServiceImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
@@ -72,14 +77,16 @@ public class ContractServiceExtension implements ServiceExtension {
 
         registerTypes(context);
         registerServices(context);
+        Metrics.addRegistry(MetricsSingleton.INSTANCE);
     }
 
     @Override
     public void start() {
         // Start negotiation managers.
         var negotiationStore = context.getService(ContractNegotiationStore.class);
-        consumerNegotiationManager.start(negotiationStore);
-        providerNegotiationManager.start(negotiationStore);
+        var decorated = new ContractNegotiationStoreMetricsDecorator(negotiationStore);
+        consumerNegotiationManager.start(decorated);
+        providerNegotiationManager.start(decorated);
     }
 
     @Override

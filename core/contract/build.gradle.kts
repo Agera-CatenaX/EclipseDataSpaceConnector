@@ -24,6 +24,7 @@ dependencies {
     api("org.slf4j:slf4j-api:${slf4jVersion}")
     api(project(":core:base"))
     implementation(project(":core:policy:policy-engine"))
+    implementation("io.micrometer:micrometer-registry-prometheus:1.8.1")
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
 }
 
