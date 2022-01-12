@@ -18,9 +18,7 @@ import io.opentelemetry.api.GlobalOpenTelemetry;
 import io.opentelemetry.api.OpenTelemetry;
 import io.opentelemetry.api.common.Attributes;
 import io.opentelemetry.api.trace.Span;
-import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
-import io.opentelemetry.context.Scope;
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -31,12 +29,9 @@ import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 
-import static io.opentelemetry.api.trace.StatusCode.ERROR;
-
 public class ContractNegotiationStoreTracingDecorator implements ContractNegotiationStore {
     private final ContractNegotiationStore delegate;
     private final OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
-    private final Tracer tracer = openTelemetry.getTracer("edc");
     private final static ContractNegotiationTraceContextMapper traceContextMapper = new ContractNegotiationTraceContextMapper();
 
     public ContractNegotiationStoreTracingDecorator(ContractNegotiationStore delegate) {
