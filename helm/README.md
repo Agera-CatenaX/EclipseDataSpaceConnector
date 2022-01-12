@@ -21,6 +21,8 @@ cd DataspaceConnector
 docker build . -f launchers/ids-connector/Dockerfile -t connector:latest
 ```
 
+Choose the correct values in helm/values.yaml.
+
 Install helm release
 
 ```bash
