@@ -60,12 +60,11 @@ public class ContractNegotiationStoreTracingDecorator implements ContractNegotia
         return delegate.findContractAgreement(contractId);
     }
 
-    @WithSpan(value = "saving negotiation in state")
+    @WithSpan(value = "saving negotiation")
     @Override
     public void save(ContractNegotiation negotiation) {
         Span span = Span.current();
         span.setAttribute("negotiationState", getStateName(negotiation));
-        // span.makeCurrent();
         openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), negotiation, traceContextMapper);
         delegate.save(negotiation);
         span.addEvent("Saved", Attributes.builder().put("State", getStateName(negotiation)).build());
