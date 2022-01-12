@@ -118,3 +118,34 @@ services:
     ports:
       - 9411:9411
 
+  #####
+  # Setup for connectors without telemetry.
+  # Connection string must be defined in .env file
+  #####
+
+  consumerNoTelemetry:
+    image: openjdk:11-jre-slim-buster
+    environment:
+      edc.api.control.auth.apikey.value: password
+      ids.webhook.address: http://consumerNoTelemetry:8181
+    volumes:
+      - .:/app
+    entrypoint: java -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
+
+  providerNoTelemetry:
+    image: openjdk:11-jre-slim-buster
+    environment:
+      edc.samples.04.asset.path: /tmp
+      ids.webhook.address: http://providerNoTelemetry:8181
+    volumes:
+      - .:/app
+    entrypoint: java -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
+
+  connector-integration-test-no-telemetry:
+    image: adoptopenjdk:11-jre-hotspot
+    command: /connector-integration-test.sh providerNoTelemetry:8181 consumerNoTelemetry:8181
+    volumes:
+      - ./samples:/samples
+      - ./connector-integration-test.sh:/connector-integration-test.sh
+
+
