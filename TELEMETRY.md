@@ -58,6 +58,89 @@ After selecting the trace you should be able to see the transaction diagnostic v
 
 ![Zipkin UI](.attachments/zipkin-2.png)
 
+### About the code
+
+Without any code changes, basic traces are already produced. However, extending the code greatly improves the quality of the traces.
+
+#### Custom spans
+
+Refactoring "sub-tasks" of a complex operation into methods and annotating the methods with `@WithSpan` is sufficient to capture the timing and state of the sub-tasks:
+
+```java
+@WithSpan(value = "processing negotiation")
+private void sendOffer(ContractNegotiation process) {
+  ...
+}
+```
+
+Code is generated at runtime by the [OpenTelemetry agent](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/manual-instrumentation.md). The Application Insights agent is a superset of the OpenTelemetry agent, so it includes its features.
+
+Information about spans can be enhanced by supplying attributes:
+
+```java
+@WithSpan(value = "saving negotiation")
+@Override
+public void save(ContractNegotiation negotiation) {
+  Span.current().setAttribute("negotiationState", getStateName(negotiation));
+  ... // call code to actually save
+}
+```
+
+#### Context propagation
+
+Within a thread, the OpenTelemetry agent automatically manages trace headers (e.g. extracting them from an inbound JAX-RS request and inserting them into an outbound OkHttp request). Links between parent and child spans are also created automatically.
+
+When operations are processed asynchronously, we need to help OpenTelemetry perform [Context propagation](https://opentelemetry.io/docs/instrumentation/java/manual_instrumentation/#context-propagation). In our case, incoming `ContractNegotiation` instances are saved to a store (in this simple sample, an basic in-memory store), and another thread advanced these objects through their state machine.
+
+```java
+public class ContractNegotiation {
+  ...
+  
+  // Add a field to persist trace information
+  private Map<String, String> traceContext;
+}
+```
+
+For simplicity we have used a mutable `Map` in the spike. In a production setup we would improve that by using the `Builder` class and immutable types.
+
+We need to provide an adapter (`TextMapSetter`) to fill in the data:
+
+```java
+public class ContractNegotiationTraceContextMapper implements TextMapSetter<ContractNegotiation> {
+    @Override
+    public void set(ContractNegotiation carrier, String key, String value) {
+        carrier.getTraceContext().put(key, value);
+    }
+}
+```
+
+And use the adapter to write the data from the current span (e.g. derived from the inbound `traceparent` and `tracestate`  HTTP headers):
+
+```java
+ContractNegotiationTraceContextMapper traceContextMapper = ...;
+ContractNegotiation negotiation = ...;
+openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), negotiation, traceContextMapper);
+```
+
+Similarly, we provide an adapter (`TextMapGetter`) to read the current span information from the `ContractNegotiation` object:
+
+```java
+ContractNegotiationTraceContextMapper traceContextMapper = ...;
+ContractNegotiation negotiation = ...;
+Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
+.extract(Context.current(), negotiation, traceContextMapper);
+extractedContext.makeCurrent();
+```
+
+In the spike, to keep the code as simple as possible, we use the global `OpenTelemetry` configuration:
+
+```java
+private final OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
+```
+
+Of course, in a production setup we would modularize these components properly, separating API and SDK usage and allowing the application developer to inject their preferred  instance of `OpenTelemetry`, following the [OpenTelemetry Java guidelines](https://opentelemetry.io/docs/instrumentation/java/manual_instrumentation/).
+
+
 ## Features shown in the spike
 
 - [Configuration-based](https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md) exporter to Azure Application Insights, Jaeger and Zipkin.
