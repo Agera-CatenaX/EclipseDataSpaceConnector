@@ -4,6 +4,8 @@ The sample `04-file-transfer` was adapted to demonstrate automatic and manual co
 
 The Application Insights agent is compatible with Open Telemetry library code.
 
+OpenTelemetry provides a text-based approach to propagate context to remote services using the [W3C Trace Context](https://www.w3.org/TR/trace-context/) HTTP headers.
+
 ## Usage
 
 ### Prerequisites
@@ -28,7 +30,7 @@ The docker-compose file spins multiple containers to demonstrate multiple teleme
 
 It also starts containers to fire cURL requests to initiate a contract negotiation process on the consumer connector. This causes EDC to send an HTTP request from the consumer to the provider connector, followed by another message from the provider to the consumer connector. See [the sample README file](samples/04-file-transfer//README.md) for more information about the negotiation process.
 The docker-compose contains also a pair of containers not using any telemetry. They were added to verify that the telemetry code works also if no telemetry 
-backend is set up. 
+backend is set up.
 
 ### Verify the distributed traces
 
