@@ -77,6 +77,8 @@ private void sendOffer(ContractNegotiation process) {
 
 Code is generated at runtime by the [OpenTelemetry agent](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/manual-instrumentation.md). The Application Insights agent is a superset of the OpenTelemetry agent, so it includes its features.
 
+The `@WithSpan` annotation is a great improvement to avoid having to write boilerplate try-catch code.
+
 Information about spans can be enhanced by supplying attributes:
 
 ```java
