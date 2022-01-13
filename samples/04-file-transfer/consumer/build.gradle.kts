@@ -37,6 +37,8 @@ dependencies {
 
     implementation(project(":extensions:api:control"))
 
+    implementation(project(":extensions:jdk-logger-monitor"))
+
     implementation(project(":data-protocols:ids"))
 
     implementation(project(":samples:04-file-transfer:api"))

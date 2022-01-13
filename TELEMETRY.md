@@ -10,8 +10,7 @@ OpenTelemetry provides a text-based approach to propagate context to remote serv
 
 ### Prerequisites
 
-Download [opentelemetry-javaagent.jar](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases) and [applicationinsights-agent-3.2.4.
-jar](https://docs.microsoft.com/en-us/azure/azure-monitor/app/java-in-process-agent#download-the-jar-file) and place them in the project root folder.
+Download [opentelemetry-javaagent.jar](https://github.com/open-telemetry/opentelemetry-java-instrumentation/releases) and [applicationinsights-agent-3.2.4.jar](https://docs.microsoft.com/en-us/azure/azure-monitor/app/java-in-process-agent#download-the-jar-file) and place them in the project root folder.
 
 To use also Application Insights as a telemetry backend you have to provide `APPLICATIONINSIGHTS_CONNECTION_STRING` property. Copy the content of [`.env.example`](./.env.example) into a newly created `.env` file and fill in the Application Insights connection string.
 
@@ -29,8 +28,7 @@ The docker-compose file spins multiple containers to demonstrate multiple teleme
 - [Zipkin](https://zipkin.io/) open-source distributed tracing system (at [http://localhost:9411](http://localhost:9411)), created at Twitter based on Google Dapper
 
 It also starts containers to fire cURL requests to initiate a contract negotiation process on the consumer connector. This causes EDC to send an HTTP request from the consumer to the provider connector, followed by another message from the provider to the consumer connector. See [the sample README file](samples/04-file-transfer//README.md) for more information about the negotiation process.
-The docker-compose contains also a pair of containers not using any telemetry. They were added to verify that the telemetry code works also if no telemetry 
-backend is set up.
+The docker-compose contains also a pair of containers not using any telemetry. They were added to verify that the telemetry code works also if no telemetry backend is set up.
 
 ### Verify the distributed traces
 
@@ -39,6 +37,18 @@ backend is set up.
 Monitor the traces in [Application map](https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-map?tabs=net) or in [transaction diagnostic](https://docs.microsoft.com/en-us/azure/azure-monitor/app/transaction-diagnostics) component.
 
 ![E2E transactions in Application Insights](.attachments/e2e-transaction.png)
+
+Span attributes appear as "Custom Properties".
+
+![E2E transactions in Application Insights](.attachments/e2e-transaction-span.png)
+
+OpenTelemetry events are also attached to the transaction as "Traces".
+
+![E2E transactions in Application Insights](.attachments/e2e-transaction-event.png)
+
+Logs (using the EDC `jdk-logger-monitor` module and the agent's `java.util.Logging` integration) are also attached to the transaction as "Traces".
+
+![E2E transactions in Application Insights](.attachments/e2e-transaction-logs.png)
 
 #### Jaeger
 

@@ -100,6 +100,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      */
     @Override
     public NegotiationResult initiate(ContractOfferRequest contractOffer) {
+        monitor.severe(format("[Consumer] Logging initiate"));
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .protocol(contractOffer.getProtocol())
@@ -133,6 +134,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      */
     @Override
     public NegotiationResult offerReceived(ClaimToken token, String negotiationId, ContractOffer contractOffer, String hash) {
+        monitor.severe(format("[Consumer] Logging received"));
         var negotiation = negotiationStore.find(negotiationId);
         if (negotiation == null) {
             return NegotiationResult.failure(FATAL_ERROR);
@@ -187,6 +189,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     @Override
     public NegotiationResult confirmed(ClaimToken token, String negotiationId, ContractAgreement agreement, String hash) {
         var negotiation = negotiationStore.find(negotiationId);
+        monitor.severe(format("[Consumer] Logging confirmed"));
         if (negotiation == null) {
             return NegotiationResult.failure(FATAL_ERROR);
         }
@@ -233,6 +236,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      */
     @Override
     public NegotiationResult declined(ClaimToken token, String negotiationId) {
+        monitor.severe(format("[Consumer] Logging declined"));
         var negotiation = negotiationStore.find(negotiationId);
         if (negotiation == null) {
             return NegotiationResult.failure(FATAL_ERROR);
@@ -289,6 +293,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
 
     @WithSpan(value = "processing negotiation")
     private void sendOffer(ContractNegotiation process) {
+        monitor.severe(format("[Consumer] Logging sendOffer"));
         var offer = process.getLastContractOffer();
         var response = sendOffer(offer, process, ContractOfferRequest.Type.INITIAL);
         if (response.isCompletedExceptionally()) {
