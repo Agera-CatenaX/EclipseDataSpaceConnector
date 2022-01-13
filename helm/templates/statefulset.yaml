@@ -40,4 +40,4 @@ spec:
             failureThreshold: 7
             httpGet:
               port: http
-              path: /api/check/startup
+              path: /api/check/readiness
