@@ -17,6 +17,7 @@ package org.eclipse.dataspaceconnector.common.azure;
 import com.azure.storage.blob.models.BlobItem;
 import org.eclipse.dataspaceconnector.spi.system.Feature;
 
+import java.io.OutputStream;
 import java.time.OffsetDateTime;
 import java.util.List;
 
@@ -38,4 +39,6 @@ public interface BlobStoreApi {
     String createAccountSas(String accountName, String containerName, String racwxdl, OffsetDateTime expiry);
 
     byte[] getBlob(String account, String container, String blobName);
+
+    void getBlobAsStream(String account, String container, String blobName, OutputStream outputStream);
 }

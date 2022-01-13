@@ -27,6 +27,7 @@ import com.azure.storage.common.sas.AccountSasService;
 import com.azure.storage.common.sas.AccountSasSignatureValues;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 
+import java.io.OutputStream;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.List;
@@ -92,7 +93,14 @@ public class BlobStoreApiImpl implements BlobStoreApi {
     @Override
     public byte[] getBlob(String account, String container, String blobName) {
         var client = getBlobServiceClient(account);
+
         return client.getBlobContainerClient(container).getBlobClient(blobName).downloadContent().toBytes();
+    }
+
+    @Override
+    public void getBlobAsStream(String account, String container, String blobName, OutputStream outputStream) {
+        var client = getBlobServiceClient(account);
+        client.getBlobContainerClient(container).getBlobClient(blobName).downloadStream(outputStream);
     }
 
     private BlobServiceClient getBlobServiceClient(String accountName) {
