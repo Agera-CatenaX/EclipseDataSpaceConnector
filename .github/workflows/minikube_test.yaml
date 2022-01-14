@@ -19,8 +19,8 @@ jobs:
       - name: Build image
         run: |
           eval $(minikube -p minikube docker-env)
-          docker build --build-arg CONNECTOR_NAME=provider --build-arg CONNECTOR_ADDRESS=localhost:8181 -f samples/04-file-transfer/Dockerfile . -t provider:latest
-          docker build --build-arg CONNECTOR_NAME=consumer --build-arg CONNECTOR_ADDRESS=localhost:9191 --build-arg PORT=9191 -f samples/04-file-transfer/Dockerfile . -t consumer:latest
+          docker build --build-arg CONNECTOR_NAME=provider -f samples/04-file-transfer/Dockerfile . -t provider:latest
+          docker build --build-arg CONNECTOR_NAME=consumer -f samples/04-file-transfer/Dockerfile . -t consumer:latest
           echo -n "verifying images:"
           docker images
       - name: Deploy to minikube
