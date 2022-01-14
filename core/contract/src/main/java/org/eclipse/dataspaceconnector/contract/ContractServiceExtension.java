@@ -16,8 +16,7 @@
 package org.eclipse.dataspaceconnector.contract;
 
 import org.eclipse.dataspaceconnector.contract.agent.ParticipantAgentServiceImpl;
-import org.eclipse.dataspaceconnector.contract.negotiation.ConsumerContractNegotiationManagerImpl;
-import org.eclipse.dataspaceconnector.contract.negotiation.ProviderContractNegotiationManagerImpl;
+import org.eclipse.dataspaceconnector.contract.negotiation.*;
 import org.eclipse.dataspaceconnector.contract.offer.ContractDefinitionServiceImpl;
 import org.eclipse.dataspaceconnector.contract.offer.ContractOfferServiceImpl;
 import org.eclipse.dataspaceconnector.contract.policy.PolicyEngineImpl;
@@ -42,6 +41,8 @@ import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 
+import javax.management.*;
+import java.lang.management.ManagementFactory;
 import java.util.Set;
 
 public class ContractServiceExtension implements ServiceExtension {
@@ -80,10 +81,26 @@ public class ContractServiceExtension implements ServiceExtension {
 
     @Override
     public void start() {
+        registerEDCMBean();
+
         // Start negotiation managers.
         var negotiationStore = context.getService(ContractNegotiationStore.class);
-        consumerNegotiationManager.start(negotiationStore);
-        providerNegotiationManager.start(negotiationStore);
+        var edcStatusMBean = context.getService(EDCStatusMBean.class);
+        var decorated = new ContractNegotiationStoreMetricsDecorator(negotiationStore, edcStatusMBean);
+        consumerNegotiationManager.start(decorated);
+        providerNegotiationManager.start(decorated);
+    }
+
+    private void registerEDCMBean() {
+        // Register the object in the MBeanServer
+        EDCStatusMBean edcStatusMBean = new EDCStatus();
+        try {
+            var objectName = new ObjectName("org.eclipse.dataspaceconnector:name=EDCStatus");
+            ManagementFactory.getPlatformMBeanServer().registerMBean(edcStatusMBean, objectName);
+        } catch (MalformedObjectNameException | NotCompliantMBeanException | InstanceAlreadyExistsException | MBeanRegistrationException e) {
+            monitor.severe("Could not register MBean", e);
+        }
+        context.registerService(EDCStatusMBean.class, edcStatusMBean);
     }
 
     @Override

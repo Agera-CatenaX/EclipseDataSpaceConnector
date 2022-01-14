@@ -49,3 +49,5 @@ distributions/azure/azure.properties
 launchers/demo-e2e/edc-config.properties
 **/out
 *.hprof
+
+.env

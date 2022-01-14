@@ -1,0 +1,9 @@
+{
+  "jmxMetrics": [
+    {
+      "name": "NegotiationsSaved",
+      "objectName": "org.eclipse.dataspaceconnector:name=EDCStatus",
+      "attribute": "NegotiationsSaved"
+    }
+  ]
+}
