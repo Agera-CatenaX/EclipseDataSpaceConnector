@@ -25,7 +25,6 @@ jobs:
           docker images
       - name: Deploy to minikube
         run: |
-          minikube addons enable ingress
           helm install r1 helm --set image.repository="" --set image.tag="" \
             --set ingress.prefix=/edcconsumer --set image.pullPolicy="Never" \
             --set container.port=8181 --set ingress.host=localhost --set ingress.className=nginx \
@@ -34,4 +33,5 @@ jobs:
       - name: Test
         run: |
           minikube service list
-          kubectl get ingress --all-namespaces
+          kubectl get pods -n consumer-namespace
+          kubectl logs edc-0 -n consumer-namespace
