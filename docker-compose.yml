@@ -1,0 +1,85 @@
+version: "3.8"
+
+services:
+
+  #####
+  # Setup for Metrics with Azure Application Insights.
+  # Connection string must be defined in .env file
+  #####
+
+  consumerA:
+    image: openjdk:11-jre-slim-buster
+    environment:
+      APPLICATIONINSIGHTS_CONNECTION_STRING: $APPLICATIONINSIGHTS_CONNECTION_STRING
+      APPLICATIONINSIGHTS_ROLE_NAME: consumer
+      edc.api.control.auth.apikey.value: password
+      ids.webhook.address: http://consumerA:8181
+    volumes:
+      - .:/app
+    entrypoint: java -javaagent:/app/applicationinsights-agent-3.2.4.jar -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
+
+  providerA:
+    image: openjdk:11-jre-slim-buster
+    environment:
+      APPLICATIONINSIGHTS_CONNECTION_STRING: $APPLICATIONINSIGHTS_CONNECTION_STRING
+      APPLICATIONINSIGHTS_ROLE_NAME: provider
+      edc.samples.04.asset.path: /tmp
+      ids.webhook.address: http://providerA:8181
+    volumes:
+      - .:/app
+    entrypoint: java -javaagent:/app/applicationinsights-agent-3.2.4.jar -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
+
+  connector-integration-testA:
+    image: adoptopenjdk:11-jre-hotspot
+    command: /connector-integration-test.sh providerA:8181 consumerA:8181
+    volumes:
+      - ./samples:/samples
+      - ./connector-integration-test.sh:/connector-integration-test.sh
+
+  #####
+  # Setup for Metrics with Prometheus.
+  # Web interface can be accessed at http://localhost:9090
+  #####
+
+  consumerO:
+    image: openjdk:11-jre-slim-buster
+    environment:
+      OTEL_SERVICE_NAME: consumer
+      OTEL_TRACES_EXPORTER: none
+      OTEL_METRICS_EXPORTER: prometheus
+      edc.api.control.auth.apikey.value: password
+      ids.webhook.address: http://consumerO:8181
+    volumes:
+      - .:/app
+    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
+    ports:
+      - 9464:9464
+
+  providerO:
+    image: openjdk:11-jre-slim-buster
+    environment:
+      OTEL_SERVICE_NAME: provider
+      OTEL_TRACES_EXPORTER: none
+      OTEL_METRICS_EXPORTER: prometheus
+      edc.samples.04.asset.path: /tmp
+      ids.webhook.address: http://providerO:8181
+    volumes:
+      - .:/app
+    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
+    ports:
+      - 9465:9464
+
+  connector-integration-testO:
+    image: adoptopenjdk:11-jre-hotspot
+    command: /connector-integration-test.sh providerO:8181 consumerO:8181
+    volumes:
+      - ./samples:/samples
+      - ./connector-integration-test.sh:/connector-integration-test.sh
+
+  prometheus:
+    image: prom/prometheus:v2.30.3
+    container_name: prometheus
+    volumes:
+      - ./prometheus/:/etc/prometheus/
+    ports:
+      - 9090:9090
