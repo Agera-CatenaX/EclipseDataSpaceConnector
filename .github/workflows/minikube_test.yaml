@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - 'spike/432'
+      - 'spike/432/minikube-test'
 
 jobs:
   deploy_to_minikube:
@@ -35,7 +36,7 @@ jobs:
           minikube service list
           kubectl get pods --all-namespaces
           kubectl describe pod edc-0 -n consumer-namespace
-          kubectl wait --for=condition=ready pod edc-0 -n provider-namespace
+          kubectl wait --for=condition=ready pod edc-0 -n consumer-namespace
           kubectl describe pod edc-0 -n consumer-namespace
           minikube service discover --url
           kubectl logs edc-0 -n consumer-namespace
