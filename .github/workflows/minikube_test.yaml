@@ -26,7 +26,7 @@ jobs:
           docker images
       - name: Deploy to minikube
         run: |
-          helm install r1 helm --set image.repository="consumer" --set image.tag="latest" \
+          helm install r1 helm --debug --set image.repository="consumer" --set image.tag="latest" \
             --set ingress.prefix=/edcconsumer --set image.pullPolicy="Never" \
             --set container.port=9191 --set ingress.host=localhost --set ingress.className=nginx \
             -n consumer-namespace --create-namespace
