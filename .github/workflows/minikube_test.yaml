@@ -33,5 +33,6 @@ jobs:
       - name: Test
         run: |
           minikube service list
+          kubectl get pods --all-namespaces
           kubectl get pods -n consumer-namespace
           kubectl logs edc-0 -n consumer-namespace
