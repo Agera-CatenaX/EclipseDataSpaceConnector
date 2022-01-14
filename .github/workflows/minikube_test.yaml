@@ -4,7 +4,7 @@ on:
     branches:
       - main
       - 'spike/432'
-      - 'spike/432/minikube-test'
+      - 'spike/432-minikube-test'
 
 jobs:
   deploy_to_minikube:
