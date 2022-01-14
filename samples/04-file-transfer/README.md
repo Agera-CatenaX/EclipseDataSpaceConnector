@@ -342,9 +342,13 @@ we'll now find a file with the same content as the original file offered by the 
 CONSUMER_URL=<consumer-ingress>
 PROVIDER_URL=<provider-ingress>
 REGISTRY=<container-registry-url>
-./build_and_push_image.sh consumer $REGISTRY
-./build_and_push_image.sh provider $REGISTRY
-./install_helm_release.sh consumer $REGISTRY $CONSUMER_URL
-./install_helm_release.sh provider $REGISTRY $CONSUMER_URL
-curl -v -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "http://${CONSUMER_URL}/api/negotiation?connectorAddress=http://${PROVIDER_URL}/api/ids/multipart"
+./samples/04-file-transfer/build_and_push_image.sh consumer $REGISTRY $CONSUMER_URL
+./samples/04-file-transfer/build_and_push_image.sh provider $REGISTRY $PROVIDER_URL
+./samples/04-file-transfer/install_helm_release.sh consumer $REGISTRY
+./samples/04-file-transfer/install_helm_release.sh provider $REGISTRY
+```
+
+Wait for the pods to be in running state and then test contract negotiation. You should get a 200.
+```bash
+curl -v -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "${CONSUMER_URL}/api/negotiation?connectorAddress=${PROVIDER_URL}/api/ids/multipart"
 ```
