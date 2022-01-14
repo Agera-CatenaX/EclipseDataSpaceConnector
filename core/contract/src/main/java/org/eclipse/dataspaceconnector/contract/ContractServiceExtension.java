@@ -83,7 +83,7 @@ public class ContractServiceExtension implements ServiceExtension {
     public void start() {
         // Start negotiation managers.
         var negotiationStore = context.getService(ContractNegotiationStore.class);
-        var decorated = new ContractNegotiationStoreTracingDecorator(negotiationStore);
+        var decorated = new ContractNegotiationStoreTracingDecorator(negotiationStore, monitor);
         consumerNegotiationManager.start(decorated);
         providerNegotiationManager.start(decorated);
     }

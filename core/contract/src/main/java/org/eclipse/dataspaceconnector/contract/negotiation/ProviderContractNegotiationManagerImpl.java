@@ -140,9 +140,12 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .stateTimestamp(Instant.now().toEpochMilli())
                 .type(ContractNegotiation.Type.PROVIDER)
                 .build();
+        monitor.info("[PROVIDER] 5) Trace headers: " + negotiation.getTraceContextString());
         openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), negotiation, traceContextMapper);
+        monitor.info("[PROVIDER] 6) Trace headers: " + negotiation.getTraceContextString());
 
         negotiationStore.save(negotiation);
+        monitor.info("[PROVIDER] 7) Trace headers: " + negotiation.getTraceContextString());
         monitor.debug(String.format("[Provider] ContractNegotiation initiated. %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
@@ -378,7 +381,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         return confirmingNegotiations.size();
     }
 
-    @WithSpan(value = "processing confirming negotiation")
+    @WithSpan(value = "processing negotiation offer")
     private void negotiate(ContractNegotiation negotiation) {
         var agreement = negotiation.getContractAgreement(); // TODO build agreement
 

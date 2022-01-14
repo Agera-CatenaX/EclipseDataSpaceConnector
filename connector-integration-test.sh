@@ -12,5 +12,6 @@ chmod +x wait-for-it.sh
 ./wait-for-it.sh -t 240 $consumer
 
 traceId=$(openssl rand -hex 16)
+traceparent="00-$traceId-d99d251a8caecd06-01"
 
-curl -X POST -H "Content-Type: application/json" -d @/samples/04-file-transfer/contractoffer.json -H "traceparent: 00-$traceId-d99d251a8caecd06-01" "http://$consumer/api/negotiation?connectorAddress=http://$provider/api/ids/multipart"
+curl -X POST -H "Content-Type: application/json" -d @/samples/04-file-transfer/contractoffer.json -H "traceparent: $traceparent" "http://$consumer/api/negotiation?connectorAddress=http://$provider/api/ids/multipart"

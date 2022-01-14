@@ -281,17 +281,18 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
      */
     private int sendContractOffers() {
         var processes = negotiationStore.nextForState(ContractNegotiationStates.REQUESTING.code(), batchSize);
-
         for (ContractNegotiation process : processes) {
+            monitor.info("[CONSUMER] 1) Trace headers: "+ process.getTraceContextString());
             Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
                     .extract(Context.current(), process, traceContextMapper);
             extractedContext.makeCurrent();
             sendOffer(process);
+            monitor.info("[CONSUMER] 2) Trace headers: "+ process.getTraceContextString());
         }
         return processes.size();
     }
 
-    @WithSpan(value = "processing negotiation")
+    @WithSpan(value = "sending negotiation offer")
     private void sendOffer(ContractNegotiation process) {
         monitor.severe(format("[Consumer] Logging sendOffer"));
         var offer = process.getLastContractOffer();
