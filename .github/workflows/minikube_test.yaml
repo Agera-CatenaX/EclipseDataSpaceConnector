@@ -20,16 +20,15 @@ jobs:
         run: |
           export SHELL=/bin/bash
           eval $(minikube -p minikube docker-env)
-          docker build --build-arg CONNECTOR_NAME=consumer --build-arg CONNECTOR_ADDRESS=localhost:9191 -f samples/04-file-transfer/Dockerfile . -t consumer:latest
           docker build --build-arg CONNECTOR_NAME=provider --build-arg CONNECTOR_ADDRESS=localhost:8181 -f samples/04-file-transfer/Dockerfile . -t provider:latest
           echo -n "verifying images:"
           docker images
       - name: Deploy to minikube
         run: |
-          helm install r1 helm --debug --set image.repository="consumer" --set image.tag="latest" \
-            --set ingress.prefix=/edcconsumer --set image.pullPolicy="Never" \
+          helm install r1 helm --debug --set image.repository="provider" --set image.tag="latest" \
+            --set ingress.prefix=/edcprovider --set image.pullPolicy="Never" \
             --set container.port=9191 --set ingress.host=localhost --set ingress.className=nginx \
-            -n consumer-namespace --create-namespace
+            -n provider-namespace --create-namespace
           sleep 4m
           kubectl get events
 
@@ -37,8 +36,8 @@ jobs:
         run: |
           minikube service list
           kubectl get pods --all-namespaces
-          kubectl describe pod edc-0 -n consumer-namespace
-          kubectl wait --for=condition=ready pod edc-0 -n consumer-namespace
-          kubectl describe pod edc-0 -n consumer-namespace
+          kubectl describe pod edc-0 -n provider-namespace
+          kubectl wait --for=condition=ready pod edc-0 -n provider-namespace
+          kubectl describe pod edc-0 -n provider-namespace
           minikube service discover --url
-          kubectl logs edc-0 -n consumer-namespace
+          kubectl logs edc-0 -n provider-namespace
