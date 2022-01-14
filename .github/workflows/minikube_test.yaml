@@ -29,7 +29,7 @@ jobs:
           helm install r1 helm --debug --set image.repository="consumer" --set image.tag="latest" \
             --set ingress.prefix=/edcconsumer --set image.pullPolicy="Never" \
             --set container.port=9191 --set ingress.host=localhost --set ingress.className=nginx \
-            -n consumer-namespace --create-namespace
+            -n consumer-namespace --create-namespace --wait
 
       - name: Test
         run: |
