@@ -45,5 +45,6 @@ jobs:
           minikube service list
           kubectl get pods --all-namespaces
           kubectl get ingress --all-namespaces
-          curl -v -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "http://localhost/edcconsumer/api/negotiation?connectorAddress=http://localhost/edcprovider/api/ids/multipart"
+          MINIKUBE_IP=$(minikube ip)
+          curl -v -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "http://${MINIKUBE_IP}/edcconsumer/api/negotiation?connectorAddress=http://${MINIKUBE_IP}/edcprovider/api/ids/multipart"
 
