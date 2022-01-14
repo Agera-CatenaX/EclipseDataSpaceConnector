@@ -67,4 +67,4 @@ scrape_configs:
 
 ## Features shown in the spike
 
-- 
+- [OpenTelemetry Metrics](https://opentelemetry.io/docs/instrumentation/java/manual_instrumentation/#metrics-alpha-only)
