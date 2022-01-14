@@ -51,7 +51,7 @@ services:
       ids.webhook.address: http://consumerO:8181
     volumes:
       - .:/app
-    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
+    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -cp /app/samples/04-file-transfer/consumer/build/libs/consumer.jar org.eclipse.dataspaceconnector.system.runtime.OtelRuntime
     ports:
       - 9464:9464
 
@@ -61,11 +61,12 @@ services:
       OTEL_SERVICE_NAME: provider
       OTEL_TRACES_EXPORTER: none
       OTEL_METRICS_EXPORTER: prometheus
+      OTEL_EXPORTER_PROMETHEUS_PORT: 9465
       edc.samples.04.asset.path: /tmp
       ids.webhook.address: http://providerO:8181
     volumes:
       - .:/app
-    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
+    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -cp /app/samples/04-file-transfer/provider/build/libs/provider.jar org.eclipse.dataspaceconnector.system.runtime.OtelRuntime
     ports:
       - 9465:9464
 

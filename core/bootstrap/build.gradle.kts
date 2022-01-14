@@ -22,6 +22,8 @@ plugins {
 dependencies {
     api(project(":spi"))
     api("org.slf4j:slf4j-api:${slf4jVersion}")
+    implementation("io.opentelemetry:opentelemetry-sdk-extension-autoconfigure:1.10.0-alpha")
+    implementation("io.opentelemetry:opentelemetry-exporter-prometheus:1.10.0-alpha")
     testImplementation("org.awaitility:awaitility:4.1.1")
 
 }

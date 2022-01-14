@@ -70,6 +70,7 @@ public class ContractNegotiationStoreMetricsDecorator implements ContractNegotia
         var state1 = getStateName(negotiation);
         delegate.save(negotiation);
         var state2 = getStateName(negotiation);
+        System.out.println("Adding 1 to " + saveCounter);
         saveCounter.add(1, Attributes.of(
                 stringKey("InitialState"), state1,
                 stringKey("FinalState"), state2
