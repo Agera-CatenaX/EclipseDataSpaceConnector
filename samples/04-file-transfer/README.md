@@ -216,7 +216,6 @@ to authenticate ourselves to use this endpoint. For this, we use the `X-Api-Key`
 in our consumer's `config.properties`.
 
 ```bash
-curl -X GET -H 'X-Api-Key: password' "http://localhost:9191/api/control/negotiation/{UUID}"
 ```
 
 This will return a full description of the negotiation (see sample output below). When the state reads `1200` (=
@@ -335,3 +334,17 @@ Note, that the second and third `DEBUG` logs will only appear, if the destinatio
 
 After the file transfer is completed, we can check the destination path specified in the request for the file. Here,
 we'll now find a file with the same content as the original file offered by the provider.
+
+
+## Deploy sample in Kubernetes and test it.
+
+```bash
+CONSUMER_URL=<consumer-ingress>
+PROVIDER_URL=<provider-ingress>
+REGISTRY=<container-registry-url>
+./build_and_push_image.sh consumer $REGISTRY
+./build_and_push_image.sh provider $REGISTRY
+./install_helm_release.sh consumer $REGISTRY $CONSUMER_URL
+./install_helm_release.sh provider $REGISTRY $CONSUMER_URL
+curl -v -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "http://${CONSUMER_URL}/api/negotiation?connectorAddress=http://${PROVIDER_URL}/api/ids/multipart"
+```
