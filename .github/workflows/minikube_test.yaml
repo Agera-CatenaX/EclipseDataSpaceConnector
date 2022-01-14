@@ -27,7 +27,7 @@ jobs:
         run: |
           helm install r1 helm --debug --set image.repository="provider" --set image.tag="latest" \
             --set ingress.prefix=/edcprovider --set image.pullPolicy="Never" \
-            --set container.port=9191 --set ingress.host=localhost --set ingress.className=nginx \
+            --set container.port=8181 --set ingress.host=localhost --set ingress.className=nginx \
             -n provider-namespace --create-namespace
           sleep 4m
           kubectl get events
