@@ -269,6 +269,7 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                 .build();
 
         // TODO protocol-independent response type?
+        monitor.info("Sending contract offer to the provider.");
         return dispatcherRegistry.send(Object.class, request, process::getId);
     }
 
@@ -282,12 +283,12 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
     private int sendContractOffers() {
         var processes = negotiationStore.nextForState(ContractNegotiationStates.REQUESTING.code(), batchSize);
         for (ContractNegotiation process : processes) {
-            monitor.info("[CONSUMER] 1) Trace headers: "+ process.getTraceContextString());
+            logInfo("Fetching contract from negotiation store to process.");
+            logInfo("Extract trace context from contract negotiation.");
             Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
                     .extract(Context.current(), process, traceContextMapper);
             extractedContext.makeCurrent();
             sendOffer(process);
-            monitor.info("[CONSUMER] 2) Trace headers: "+ process.getTraceContextString());
         }
         return processes.size();
     }
@@ -308,6 +309,14 @@ public class ConsumerContractNegotiationManagerImpl implements ConsumerContractN
                     process.getId(), ContractNegotiationStates.from(process.getState())));
             negotiationStore.save(process);
         }
+    }
+
+    private void logTraceContext(ContractNegotiation process) {
+        monitor.info("Negotiation state:" + ContractNegotiationStates.from(process.getState()).toString() + ", Trace context: " + process.getTraceContextString());
+    }
+
+    private void logInfo(String message) {
+        monitor.info("[" + Thread.currentThread().getId() + "] " + message);
     }
 
     /**

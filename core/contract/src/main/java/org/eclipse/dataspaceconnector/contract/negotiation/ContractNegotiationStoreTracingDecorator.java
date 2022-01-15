@@ -21,7 +21,6 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.api.trace.Tracer;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.context.Scope;
-import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
@@ -65,11 +64,22 @@ public class ContractNegotiationStoreTracingDecorator implements ContractNegotia
 
     @Override
     public void save(ContractNegotiation negotiation) {
+        logTraceContext(negotiation);
+
+        // start a new span
         Span span = tracer.spanBuilder("saving negotiation state: " + getStateName(negotiation)).startSpan();
+
+        // add span to current context
         try (Scope scope = span.makeCurrent()) {
             span.setAttribute("negotiationState", getStateName(negotiation));
+
+            logInfo("Injecting trace context into contract negotiation.");
             openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), negotiation, traceContextMapper);
+            logTraceContext(negotiation);
+
+            logInfo("Saving negotiation in state " + getStateName(negotiation));
             delegate.save(negotiation);
+
             span.addEvent("Saved", Attributes.builder().put("negotiationState", getStateName(negotiation)).build());
         } catch (Throwable t) {
             span.setStatus(ERROR, "Error saving negotiation");
@@ -77,6 +87,14 @@ public class ContractNegotiationStoreTracingDecorator implements ContractNegotia
         } finally {
             span.end(); // closing the scope does not end the span, this has to be done manually
         }
+    }
+
+    private void logInfo(String message) {
+        monitor.info("[" + Thread.currentThread().getId() + "] " + message);
+    }
+
+    private void logTraceContext(ContractNegotiation negotiation) {
+        logInfo("Negotiation state: " + getStateName(negotiation) + ", Trace context: " + negotiation.getTraceContextString());
     }
 
     private String getStateName(ContractNegotiation negotiation) {

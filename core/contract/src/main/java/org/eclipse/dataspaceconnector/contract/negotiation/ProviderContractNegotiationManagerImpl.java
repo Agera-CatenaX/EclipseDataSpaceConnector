@@ -129,6 +129,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     @WithSpan(value = "negotiation requested")
     @Override
     public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
+        monitor.info("ContractNegotiation requested");
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .correlationId(request.getCorrelationId())
@@ -140,16 +141,22 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .stateTimestamp(Instant.now().toEpochMilli())
                 .type(ContractNegotiation.Type.PROVIDER)
                 .build();
-        monitor.info("[PROVIDER] 5) Trace headers: " + negotiation.getTraceContextString());
+
+        monitor.info("Negotiation state: " + getStateName(negotiation) + ", Trace context: " + negotiation.getTraceContextString());
+        monitor.info("Injecting trace context into contract negotiation.");
         openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), negotiation, traceContextMapper);
-        monitor.info("[PROVIDER] 6) Trace headers: " + negotiation.getTraceContextString());
+
+        monitor.info("Negotiation state: " + getStateName(negotiation) + ", Trace context: " + negotiation.getTraceContextString());
 
         negotiationStore.save(negotiation);
-        monitor.info("[PROVIDER] 7) Trace headers: " + negotiation.getTraceContextString());
         monitor.debug(String.format("[Provider] ContractNegotiation initiated. %s is now in state %s.",
                 negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
 
         return processIncomingOffer(negotiation, token, request.getContractOffer());
+    }
+
+    private String getStateName(ContractNegotiation negotiation) {
+        return ContractNegotiationStates.from(negotiation.getState()).toString();
     }
 
     /**
@@ -184,6 +191,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
      * @return a {@link NegotiationResult}: OK
      */
     private NegotiationResult processIncomingOffer(ContractNegotiation negotiation, ClaimToken token, ContractOffer offer) {
+        monitor.info("Process incoming offer.");
         Result<ContractOffer> result;
         if (negotiation.getContractOffers().isEmpty()) {
             result = validationService.validate(token, offer);
@@ -372,6 +380,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         var confirmingNegotiations = negotiationStore.nextForState(ContractNegotiationStates.CONFIRMING.code(), batchSize);
 
         for (var negotiation : confirmingNegotiations) {
+            logInfo("Fetched contract from negotiation store to process.");
+            logInfo("Extract trace context from contract negotiation.");
             Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
                     .extract(Context.current(), negotiation, traceContextMapper);
             extractedContext.makeCurrent();
@@ -383,6 +393,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
 
     @WithSpan(value = "processing negotiation offer")
     private void negotiate(ContractNegotiation negotiation) {
+        monitor.info("Processing negotiation offer");
         var agreement = negotiation.getContractAgreement(); // TODO build agreement
 
         if (agreement == null) {
@@ -416,6 +427,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .correlationId(negotiation.getCorrelationId())
                 .build();
 
+        monitor.info("Sending ContractAgreementRequest to the consumer.");
         //TODO protocol-independent response type?
         var response = dispatcherRegistry.send(Object.class, request, () -> null);
 
@@ -432,13 +444,12 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                     negotiation.getId(), ContractNegotiationStates.from(negotiation.getState())));
         }
     }
-
     /**
      * Builder for ProviderContractNegotiationManagerImpl.
      */
     public static class Builder {
-        private final ProviderContractNegotiationManagerImpl manager;
 
+        private final ProviderContractNegotiationManagerImpl manager;
         private Builder() {
             manager = new ProviderContractNegotiationManagerImpl();
         }
@@ -478,5 +489,10 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
             Objects.requireNonNull(manager.dispatcherRegistry, "dispatcherRegistry");
             return manager;
         }
+
+    }
+
+    private void logInfo(String message) {
+        monitor.info("[" + Thread.currentThread().getId() + "] " + message);
     }
 }
