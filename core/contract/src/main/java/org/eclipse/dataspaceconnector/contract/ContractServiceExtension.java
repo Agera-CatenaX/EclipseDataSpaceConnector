@@ -85,22 +85,22 @@ public class ContractServiceExtension implements ServiceExtension {
 
         // Start negotiation managers.
         var negotiationStore = context.getService(ContractNegotiationStore.class);
-        var edcStatusMBean = context.getService(EDCStatusMBean.class);
-        var decorated = new ContractNegotiationStoreMetricsDecorator(negotiationStore, edcStatusMBean);
+        var edcStatus = context.getService(EDCStatus.class);
+        var decorated = new ContractNegotiationStoreMetricsDecorator(negotiationStore, edcStatus);
         consumerNegotiationManager.start(decorated);
         providerNegotiationManager.start(decorated);
     }
 
     private void registerEDCMBean() {
         // Register the object in the MBeanServer
-        EDCStatusMBean edcStatusMBean = new EDCStatus();
+        EDCStatus edcStatus = new EDCStatus();
         try {
             var objectName = new ObjectName("org.eclipse.dataspaceconnector:name=EDCStatus");
-            ManagementFactory.getPlatformMBeanServer().registerMBean(edcStatusMBean, objectName);
+            ManagementFactory.getPlatformMBeanServer().registerMBean(edcStatus, objectName);
         } catch (MalformedObjectNameException | NotCompliantMBeanException | InstanceAlreadyExistsException | MBeanRegistrationException e) {
             monitor.severe("Could not register MBean", e);
         }
-        context.registerService(EDCStatusMBean.class, edcStatusMBean);
+        context.registerService(EDCStatus.class, edcStatus);
     }
 
     @Override

@@ -1,15 +1,17 @@
 package org.eclipse.dataspaceconnector.contract.negotiation;
 
+import java.util.concurrent.atomic.AtomicLong;
+
 public class EDCStatus implements EDCStatusMBean {
 
-    private long negotiationsSaved;
+    private final AtomicLong negotiationsSaved = new AtomicLong();
 
     @Override
     public Long getNegotiationsSaved() {
-        return negotiationsSaved;
+        return negotiationsSaved.get();
     }
 
     public void incrementNegotiationsSaved() {
-        negotiationsSaved++;
+        negotiationsSaved.incrementAndGet();
     }
 }

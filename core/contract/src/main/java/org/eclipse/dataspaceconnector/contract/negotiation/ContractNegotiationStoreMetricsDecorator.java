@@ -25,10 +25,10 @@ import java.util.List;
 public class ContractNegotiationStoreMetricsDecorator implements ContractNegotiationStore {
 
     private final ContractNegotiationStore delegate;
-    private final EDCStatusMBean edcStatusMBean;
+    private final EDCStatus edcStatus;
 
-    public ContractNegotiationStoreMetricsDecorator(ContractNegotiationStore delegate, EDCStatusMBean edcStatusMBean) {
-        this.edcStatusMBean = edcStatusMBean;
+    public ContractNegotiationStoreMetricsDecorator(ContractNegotiationStore delegate, EDCStatus edcStatus) {
+        this.edcStatus = edcStatus;
         this.delegate = delegate;
     }
 
@@ -52,7 +52,7 @@ public class ContractNegotiationStoreMetricsDecorator implements ContractNegotia
     @Override
     public void save(ContractNegotiation negotiation) {
         delegate.save(negotiation);
-        ((EDCStatus)edcStatusMBean).incrementNegotiationsSaved();
+        edcStatus.incrementNegotiationsSaved();
     }
 
     @Override
