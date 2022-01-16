@@ -1,4 +1,4 @@
-# OpenTelemetry Metrics spike
+# JMX Metrics spike
 
 The sample `04-file-transfer` was adapted to demonstrate collection of metrics using JMX. Metrics are either exposed through a Prometheus-compatible web endpoint, or automatically collected by the Application Insights agent.
 
