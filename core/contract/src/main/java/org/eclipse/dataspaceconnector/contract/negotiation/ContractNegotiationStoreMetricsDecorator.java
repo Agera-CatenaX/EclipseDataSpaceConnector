@@ -38,8 +38,8 @@ public class ContractNegotiationStoreMetricsDecorator implements ContractNegotia
     private final Meter meter = meterProvider.meterBuilder("edc")
             .build();
     private final LongCounter saveCounter = meter
-            .counterBuilder("saveOT")
-            .setDescription("Repository save operations")
+            .counterBuilder("negotiationsSaved")
+            .setDescription("Negotiation repository save operations")
             .setUnit("1")
             .build();
     private final ContractNegotiationStore delegate;
