@@ -51,7 +51,7 @@ services:
       ids.webhook.address: http://consumerO:8181
     volumes:
       - .:/app
-    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -cp /app/samples/04-file-transfer/consumer/build/libs/consumer.jar org.eclipse.dataspaceconnector.system.runtime.OtelRuntime
+    entrypoint: java -javaagent:/app/opentelemetry-javaagent-v1.10.0.jar -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
     ports:
       - 9464:9464
 
@@ -66,7 +66,7 @@ services:
       ids.webhook.address: http://providerO:8181
     volumes:
       - .:/app
-    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -cp /app/samples/04-file-transfer/provider/build/libs/provider.jar org.eclipse.dataspaceconnector.system.runtime.OtelRuntime
+    entrypoint: java -javaagent:/app/opentelemetry-javaagent-v1.10.0.jar -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
     ports:
       - 9465:9464
 
