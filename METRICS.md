@@ -75,24 +75,22 @@ public String getMetrics() {
 
 Of course, in a production setup we would modularize these components properly.
 
-We can access the Consumer Connector metrics endpoint at [http://localhost:8181/api/metrics](http://localhost:8181/api/metrics):
-
-```sh
-> curl http://localhost:8181/api/metrics
-# HELP save_total  
-# TYPE save_total counter
-save_total{type="ContractNegotiation",} 3.0
-```
-
-In [the Prometheus server configuration file](prometheus/prometheus.yml), we configure the server to scrape that endpoint.
+In [the Prometheus server configuration file](prometheus/prometheus.yml), we configure the server to scrape the consumer metrics endpoints for the two available replicas.
 
 ```yaml
 scrape_configs:
   - job_name: services
     metrics_path: /api/metrics
-    static_configs:
-      - targets:
-          - 'consumerP:8181'
+    dns_sd_configs:
+    - names:
+      - 'consumerP'
+      type: 'A'
+      port: 8181
+    relabel_configs:
+    - source_labels:
+      - __address__ # always exists
+      target_label: service
+      replacement: Consumer
 ```
 
 ## Features shown in the spike
