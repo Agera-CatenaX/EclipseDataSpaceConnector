@@ -342,17 +342,14 @@ Create [values files](https://helm.sh/docs/chart_template_guide/values_files/) b
 Create one for the consumer and one for the provider.
 
 ```bash
-REGISTRY=<container-registry-url>
-NAMESPACE=<namespace>
-
-./samples/04-file-transfer/build_and_push_images.sh $REGISTRY
-./samples/04-file-transfer/install_helm_release.sh $NAMESPACE <consumer-values-file-path> <consumer-release-name>
-./samples/04-file-transfer/install_helm_release.sh $NAMESPACE <provider-values-file-path> <provider-release-name>
+./samples/04-file-transfer/build_and_push_images.sh <container-registry-url>
+helm install -f <consumer-values-file-path> <consumer-release-name> helm -n <namespace> --wait
+helm install -f <provider-values-file-path> <provider-release-name> helm -n <namespace> --wait
 ```
 
 Test contract negotiation. You should get a 200.
 ```bash
-CONSUMER_URL=${INGRESS_HOST}${CONSUMER_INGRESS_PREFIX}
-PROVIDER_URL=${INGRESS_HOST}${PROVIDER_INGRESS_PREFIX}
+CONSUMER_URL=<consumer-url> # Ingress host + ingress prefix
+PROVIDER_URL=<provider-url>
 curl -v -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "${CONSUMER_URL}/api/negotiation?connectorAddress=${PROVIDER_URL}/api/ids/multipart"
 ```
