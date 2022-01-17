@@ -14,6 +14,15 @@ jobs:
       INGRESS_HOST: localedc
     steps:
       - uses: actions/checkout@v2
+      - name: Cache packages
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
       - name: Start minikube
         uses: medyagh/setup-minikube@master
       - name: Try the cluster
