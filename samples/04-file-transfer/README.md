@@ -348,6 +348,7 @@ helm install -f <provider-values-file-path> <provider-release-name> helm -n <nam
 ```
 
 Test contract negotiation. You should get a 200.
+
 ```bash
 CONSUMER_URL=<consumer-url> # Ingress host + ingress prefix
 PROVIDER_URL=<provider-url>
