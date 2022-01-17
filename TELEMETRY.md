@@ -75,6 +75,8 @@ After selecting the trace you should be able to see the transaction diagnostic v
 ### About the code
 
 Without any code changes, basic traces are already produced. However, extending the code greatly improves the quality of the traces.
+Customisations to the code can be done using [_io.opentelemetry:opentelemetry-api_](https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-api) 
+library which comes with a transitive dependency _io.opentelemetry:opentelemetry-context_.
 
 #### Custom spans
 
@@ -89,7 +91,7 @@ private void sendOffer(ContractNegotiation process) {
 
 Code is generated at runtime by the [OpenTelemetry agent](https://github.com/open-telemetry/opentelemetry-java-instrumentation/blob/main/docs/manual-instrumentation.md). The Application Insights agent is a superset of the OpenTelemetry agent, so it includes its features.
 
-The `@WithSpan` annotation is a great improvement to avoid having to write boilerplate try-catch code.
+The `@WithSpan` annotation is a great improvement to avoid having to write boilerplate try-catch code. It's available in the library [_io.opentelemetry:opentelemetry-extension-annotations_](https://mvnrepository.com/artifact/io.opentelemetry/opentelemetry-extension-annotations). 
 
 Information about spans can be enhanced by supplying attributes:
 
