@@ -41,13 +41,8 @@ jobs:
           docker images
       - name: Deploy to minikube
         run: |
-
-          ./samples/04-file-transfer/install_helm_release.sh connectors consumer-release consumer nginx \
-          /edcconsumer ${INGRESS_HOST} Never
-
-          ./samples/04-file-transfer/install_helm_release.sh connectors provider-release provider nginx \
-          /edcprovider ${INGRESS_HOST} Never
-
+          helm install -f samples/04-file-transfer/consumer-local-values.yaml --set ingress.host=${INGRESS_HOST} consumer-release helm --debug --wait
+          helm install -f samples/04-file-transfer/provider-local-values.yaml --set ingress.host=${INGRESS_HOST} provider-release helm --debug --wait
           kubectl get all --all-namespaces
 
       - name: Test
