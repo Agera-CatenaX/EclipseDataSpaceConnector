@@ -8,7 +8,10 @@ services:
   #####
 
   consumerA:
+    profiles: ["azure"]
     image: openjdk:11-jre-slim-buster
+    deploy:
+      replicas: 2
     environment:
       APPLICATIONINSIGHTS_CONNECTION_STRING: $APPLICATIONINSIGHTS_CONNECTION_STRING
       APPLICATIONINSIGHTS_ROLE_NAME: consumer
@@ -19,7 +22,10 @@ services:
     entrypoint: java -javaagent:/app/applicationinsights-agent-3.2.4.jar -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
 
   providerA:
+    profiles: ["azure"]
     image: openjdk:11-jre-slim-buster
+    deploy:
+      replicas: 2
     environment:
       APPLICATIONINSIGHTS_CONNECTION_STRING: $APPLICATIONINSIGHTS_CONNECTION_STRING
       APPLICATIONINSIGHTS_ROLE_NAME: provider
@@ -30,6 +36,7 @@ services:
     entrypoint: java -javaagent:/app/applicationinsights-agent-3.2.4.jar -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
 
   connector-integration-testA:
+    profiles: ["azure"]
     image: adoptopenjdk:11-jre-hotspot
     command: /connector-integration-test.sh providerA:8181 consumerA:8181
     volumes:
@@ -41,36 +48,40 @@ services:
   # Web interface can be accessed at http://localhost:9090
   #####
 
-  consumerO:
+  consumerP:
+    profiles: ["prometheus"]
     image: openjdk:11-jre-slim-buster
+    deploy:
+      replicas: 2
     environment:
       edc.api.control.auth.apikey.value: password
-      ids.webhook.address: http://consumerO:8181
+      ids.webhook.address: http://consumerP:8181
     volumes:
       - .:/app
     entrypoint: java -javaagent:/app/jmx_prometheus_javaagent-0.16.1.jar=9464:/app/jmx_prometheus_config.yaml -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
-    ports:
-      - 9464:9464
 
-  providerO:
+  providerP:
+    profiles: ["prometheus"]
     image: openjdk:11-jre-slim-buster
+    deploy:
+      replicas: 2
     environment:
       edc.samples.04.asset.path: /tmp
-      ids.webhook.address: http://providerO:8181
+      ids.webhook.address: http://providerP:8181
     volumes:
       - .:/app
     entrypoint: java -javaagent:/app/jmx_prometheus_javaagent-0.16.1.jar=9464:/app/jmx_prometheus_config.yaml -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
-    ports:
-      - 9465:9464
 
-  connector-integration-testO:
+  connector-integration-testP:
+    profiles: ["prometheus"]
     image: adoptopenjdk:11-jre-hotspot
-    command: /connector-integration-test.sh providerO:8181 consumerO:8181
+    command: /connector-integration-test.sh providerP:8181 consumerP:8181
     volumes:
       - ./samples:/samples
       - ./connector-integration-test.sh:/connector-integration-test.sh
 
   prometheus:
+    profiles: ["prometheus"]
     image: prom/prometheus:v2.30.3
     container_name: prometheus
     volumes:

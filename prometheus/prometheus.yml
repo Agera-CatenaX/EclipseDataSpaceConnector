@@ -4,12 +4,13 @@ global:
 
 scrape_configs:
   - job_name: services
-    static_configs:
-      - targets:
-          - 'consumerO:9464'
-        labels:
-          service: 'Consumer'
-      - targets:
-          - 'providerO:9464'
-        labels:
-          service: 'Provider'
+    dns_sd_configs:
+      - names:
+          - 'consumerP'
+        type: 'A'
+        port: 9464
+    relabel_configs:
+      - source_labels:
+          - __address__ # always exists
+        target_label: service
+        replacement: Consumer
