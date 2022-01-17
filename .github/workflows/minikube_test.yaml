@@ -43,10 +43,10 @@ jobs:
         run: |
 
           ./samples/04-file-transfer/install_helm_release.sh connectors consumer-release consumer nginx \
-          edcconsumer ${INGRESS_HOST} Never
+          /edcconsumer ${INGRESS_HOST} Never
 
           ./samples/04-file-transfer/install_helm_release.sh connectors provider -release provider nginx \
-                    edcprovider ${INGRESS_HOST} Never
+          /edcprovider ${INGRESS_HOST} Never
 
           kubectl get all --all-namespaces
 
