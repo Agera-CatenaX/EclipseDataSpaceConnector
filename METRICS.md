@@ -49,21 +49,6 @@ Example: [query number of save operations per second as measured over the last m
 
 ![Prometheus metric](.attachments/prometheus.png)
 
-We can access the Consumer Connector metrics endpoint at [http://localhost:9464/metrics](http://localhost:9464/metrics):
-
-```sh
-> curl http://localhost:9464/metrics
-# TYPE java_lang_G1_Old_Gen_CollectionUsageThresholdCount untyped
-java_lang_G1_Old_Gen_CollectionUsageThresholdCount{type="MemoryPool",} 0.0
-# HELP org_eclipse_dataspaceconnector_EDCStatus_NegotiationsSaved Attribute exposed for management (org.eclipse.dataspaceconnector<name=EDCStatus><>NegotiationsSaved)
-# TYPE org_eclipse_dataspaceconnector_EDCStatus_NegotiationsSaved untyped
-org_eclipse_dataspaceconnector_EDCStatus_NegotiationsSaved 3.0
-```
-
-The metrics contain system metrics as well as our custom metrics.
-
-We can similarly access the Provider Connector metrics endpoint at [http://localhost:9465/metrics](http://localhost:9465/metrics).
-
 ### About the code
 
 An `EDCStatus` MBean is registered using JMX: 
@@ -106,14 +91,16 @@ JMX Metrics are exported to a prometheus endpoint by the [JMX exporter agent](ht
 java -javaagent:/app/jmx_prometheus_javaagent-0.16.1.jar=9464:/app/jmx_prometheus_config.yaml
 ```
 
-In [the Prometheus server configuration file](prometheus/prometheus.yml), we configure the server to scrape the Prometheus endpoints.
+In [the Prometheus server configuration file](prometheus/prometheus.yml), we configure the server to scrape the consumer metrics endpoints for the two available replicas.
 
 ```yaml
 scrape_configs:
   - job_name: services
-    static_configs:
-      - targets:
-          - 'consumerO:9464'
+    dns_sd_configs:
+      - names:
+          - 'consumerP'
+        type: 'A'
+        port: 9464
       ...
 ```
 
