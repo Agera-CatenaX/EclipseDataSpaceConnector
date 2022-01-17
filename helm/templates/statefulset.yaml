@@ -1,22 +1,22 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: edc
+  name: {{ .Release.Name }}-edc
   labels:
-    app.kubernetes.io/name: edc
+    app.kubernetes.io/name: {{ .Release.Name }}-edc
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app.kubernetes.io/name: edc
-  serviceName: edc
+      app.kubernetes.io/name: {{ .Release.Name }}-edc
+  serviceName: {{ .Release.Name }}-edc
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: edc
+        app.kubernetes.io/name: {{ .Release.Name }}-edc
     spec:
       containers:
-        - name: edc
+        - name: {{ .Release.Name }}-edc
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
           ports:

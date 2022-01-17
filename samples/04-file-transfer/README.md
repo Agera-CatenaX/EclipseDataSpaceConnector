@@ -338,13 +338,24 @@ we'll now find a file with the same content as the original file offered by the 
 
 ## Deploy sample in Kubernetes and test it.
 
+REGISTRY=edcregistry.azurecr.io
+NAMESPACE=connectors
+CONSUMER_RELEASE_NAME=consumer-r1
+PROVIDER_RELEASE_NAME=provider-r1
+INGRESS_HOST=ouphi1101test.switzerlandnorth.cloudapp.azure.com
+INGRESS_CLASS_NAME=nginx
+
+
 ```bash
 REGISTRY=<container-registry-url>
-INGRESS_HOST=<ingess-host>
+NAMESPACE=<namespace>
+CONSUMER_RELEASE_NAME=<consumer-release-name>
+PROVIDER_RELEASE_NAME=<consumer-release-name>
+INGRESS_HOST=<ingress-host>
 INGRESS_CLASS_NAME=<ingress-class-name>
 ./samples/04-file-transfer/build_and_push_images.sh $REGISTRY
-./samples/04-file-transfer/install_helm_release.sh consumer $REGISTRY $INGRESS_HOST $INGRESS_CLASS_NAME
-./samples/04-file-transfer/install_helm_release.sh provider $REGISTRY $INGRESS_HOST $INGRESS_CLASS_NAME
+./samples/04-file-transfer/install_helm_release.sh consumer $REGISTRY $NAMESPACE $CONSUMER_RELEASE_NAME $INGRESS_HOST $INGRESS_CLASS_NAME
+./samples/04-file-transfer/install_helm_release.sh provider $REGISTRY $NAMESPACE $PROVIDER_RELEASE_NAME $INGRESS_HOST $INGRESS_CLASS_NAME
 ```
 
 Test contract negotiation. You should get a 200.
