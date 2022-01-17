@@ -1,5 +1,15 @@
 # Helm chart
 
+## Install helm release
+
+- Build your image. Push it to your container repository if needed.
+- Create a [values file](https://helm.sh/docs/chart_template_guide/values_files/). Use (helm/values.yaml) as a template.
+- Install your helm release:
+
+```bash
+  helm install -f <your-values-file> <release-name> helm --wait
+```
+
 ## Install helm release with minikube
 
 Start minikube:
@@ -14,7 +24,7 @@ Set minikube docker-env:
 eval $(minikube docker-env)
 ```
 
-Build connector image:
+Build connector image, for example:
 
 ```bash
 cd DataspaceConnector
