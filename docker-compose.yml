@@ -9,6 +9,9 @@ services:
 
   consumerA:
     image: openjdk:11-jre-slim-buster
+    profiles:
+      - all
+      - insights
     environment:
       APPLICATIONINSIGHTS_CONNECTION_STRING: $APPLICATIONINSIGHTS_CONNECTION_STRING
       APPLICATIONINSIGHTS_ROLE_NAME: consumer
@@ -16,10 +19,13 @@ services:
       ids.webhook.address: http://consumerA:8181
     volumes:
       - .:/app
-    entrypoint: java -javaagent:/app/applicationinsights-agent-3.2.4.jar -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
+    entrypoint: java -javaagent:/app/applicationinsights-agent-3.2.4.jar -Djava.util.logging.config.file=/app/logging.properties -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
 
   providerA:
     image: openjdk:11-jre-slim-buster
+    profiles:
+      - all
+      - insights
     environment:
       APPLICATIONINSIGHTS_CONNECTION_STRING: $APPLICATIONINSIGHTS_CONNECTION_STRING
       APPLICATIONINSIGHTS_ROLE_NAME: provider
@@ -27,10 +33,14 @@ services:
       ids.webhook.address: http://providerA:8181
     volumes:
       - .:/app
-    entrypoint: java -javaagent:/app/applicationinsights-agent-3.2.4.jar -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
+    entrypoint: java -javaagent:/app/applicationinsights-agent-3.2.4.jar -Djava.util.logging.config.file=/app/logging.properties -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
 
+  # container to fire cURL request to initiate a contract negotiation process
   connector-integration-testA:
     image: adoptopenjdk:11-jre-hotspot
+    profiles:
+      - all
+      - insights
     command: /connector-integration-test.sh providerA:8181 consumerA:8181
     volumes:
       - ./samples:/samples
@@ -43,6 +53,9 @@ services:
 
   consumerO:
     image: openjdk:11-jre-slim-buster
+    profiles:
+      - all
+      - jaeger
     environment:
       OTEL_SERVICE_NAME: consumer
       OTEL_TRACES_EXPORTER: jaeger
@@ -51,10 +64,13 @@ services:
       ids.webhook.address: http://consumerO:8181
     volumes:
       - .:/app
-    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
+    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -Djava.util.logging.config.file=/app/logging.properties -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
 
   providerO:
     image: openjdk:11-jre-slim-buster
+    profiles:
+      - all
+      - jaeger
     environment:
       OTEL_SERVICE_NAME: provider
       OTEL_TRACES_EXPORTER: jaeger
@@ -63,10 +79,14 @@ services:
       ids.webhook.address: http://providerO:8181
     volumes:
       - .:/app
-    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
+    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -Djava.util.logging.config.file=/app/logging.properties -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
 
+  # container to fire cURL request to initiate a contract negotiation process
   connector-integration-testO:
     image: adoptopenjdk:11-jre-hotspot
+    profiles:
+      - all
+      - jaeger
     command: /connector-integration-test.sh providerO:8181 consumerO:8181
     volumes:
       - ./samples:/samples
@@ -74,6 +94,9 @@ services:
 
   jaeger:
     image: jaegertracing/all-in-one
+    profiles:
+      - all
+      - jaeger
     ports:
       - 16686:16686
 
@@ -84,6 +107,9 @@ services:
 
   consumerZ:
     image: openjdk:11-jre-slim-buster
+    profiles:
+      - all
+      - zipkin
     environment:
       OTEL_SERVICE_NAME: consumer
       OTEL_TRACES_EXPORTER: zipkin
@@ -92,10 +118,13 @@ services:
       ids.webhook.address: http://consumerZ:8181
     volumes:
       - .:/app
-    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
+    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -Djava.util.logging.config.file=/app/logging.properties -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
 
   providerZ:
     image: openjdk:11-jre-slim-buster
+    profiles:
+      - all
+      - zipkin
     environment:
       OTEL_SERVICE_NAME: provider
       OTEL_TRACES_EXPORTER: zipkin
@@ -104,10 +133,14 @@ services:
       ids.webhook.address: http://providerZ:8181
     volumes:
       - .:/app
-    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
+    entrypoint: java -javaagent:/app/opentelemetry-javaagent.jar -Djava.util.logging.config.file=/app/logging.properties -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
 
+  # container to fire cURL request to initiate a contract negotiation process
   connector-integration-testZ:
     image: adoptopenjdk:11-jre-hotspot
+    profiles:
+      - all
+      - zipkin
     command: /connector-integration-test.sh providerZ:8181 consumerZ:8181
     volumes:
       - ./samples:/samples
@@ -115,6 +148,9 @@ services:
 
   zipkin:
     image: openzipkin/zipkin
+    profiles:
+      - all
+      - zipkin
     ports:
       - 9411:9411
 
@@ -125,6 +161,9 @@ services:
 
   consumerNoTelemetry:
     image: openjdk:11-jre-slim-buster
+    profiles:
+      - all
+      - noTelemetry
     environment:
       edc.api.control.auth.apikey.value: password
       ids.webhook.address: http://consumerNoTelemetry:8181
@@ -134,6 +173,9 @@ services:
 
   providerNoTelemetry:
     image: openjdk:11-jre-slim-buster
+    profiles:
+      - all
+      - noTelemetry
     environment:
       edc.samples.04.asset.path: /tmp
       ids.webhook.address: http://providerNoTelemetry:8181
@@ -141,8 +183,12 @@ services:
       - .:/app
     entrypoint: java -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
 
+  # container to fire cURL request to initiate a contract negotiation process
   connector-integration-test-no-telemetry:
     image: adoptopenjdk:11-jre-hotspot
+    profiles:
+      - all
+      - noTelemetry
     command: /connector-integration-test.sh providerNoTelemetry:8181 consumerNoTelemetry:8181
     volumes:
       - ./samples:/samples

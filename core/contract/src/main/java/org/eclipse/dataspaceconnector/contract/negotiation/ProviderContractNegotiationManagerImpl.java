@@ -129,6 +129,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
     @WithSpan(value = "negotiation requested")
     @Override
     public NegotiationResult requested(ClaimToken token, ContractOfferRequest request) {
+        monitor.info("ContractNegotiation requested");
         var negotiation = ContractNegotiation.Builder.newInstance()
                 .id(UUID.randomUUID().toString())
                 .correlationId(request.getCorrelationId())
@@ -140,6 +141,8 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
                 .stateTimestamp(Instant.now().toEpochMilli())
                 .type(ContractNegotiation.Type.PROVIDER)
                 .build();
+
+        monitor.debug("Injecting trace context into contract negotiation.");
         openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), negotiation, traceContextMapper);
 
         negotiationStore.save(negotiation);
@@ -369,6 +372,7 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         var confirmingNegotiations = negotiationStore.nextForState(ContractNegotiationStates.CONFIRMING.code(), batchSize);
 
         for (var negotiation : confirmingNegotiations) {
+            monitor.debug("Extracting trace context from contract negotiation.");
             Context extractedContext = openTelemetry.getPropagators().getTextMapPropagator()
                     .extract(Context.current(), negotiation, traceContextMapper);
             extractedContext.makeCurrent();
@@ -378,8 +382,9 @@ public class ProviderContractNegotiationManagerImpl implements ProviderContractN
         return confirmingNegotiations.size();
     }
 
-    @WithSpan(value = "processing confirming negotiation")
+    @WithSpan(value = "processing negotiation offer")
     private void negotiate(ContractNegotiation negotiation) {
+        monitor.info("Processing negotiation offer");
         var agreement = negotiation.getContractAgreement(); // TODO build agreement
 
         if (agreement == null) {

@@ -21,6 +21,7 @@ import io.opentelemetry.api.trace.Span;
 import io.opentelemetry.context.Context;
 import io.opentelemetry.extension.annotations.WithSpan;
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.store.ContractNegotiationStore;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiation;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractNegotiationStates;
@@ -30,12 +31,14 @@ import org.jetbrains.annotations.Nullable;
 import java.util.List;
 
 public class ContractNegotiationStoreTracingDecorator implements ContractNegotiationStore {
+    private Monitor monitor;
     private final ContractNegotiationStore delegate;
     private final OpenTelemetry openTelemetry = GlobalOpenTelemetry.get();
     private final static ContractNegotiationTraceContextMapper traceContextMapper = new ContractNegotiationTraceContextMapper();
 
-    public ContractNegotiationStoreTracingDecorator(ContractNegotiationStore delegate) {
+    public ContractNegotiationStoreTracingDecorator(ContractNegotiationStore delegate, Monitor monitor) {
         this.delegate = delegate;
+        this.monitor = monitor;
     }
 
     @Override
@@ -60,8 +63,14 @@ public class ContractNegotiationStoreTracingDecorator implements ContractNegotia
     public void save(ContractNegotiation negotiation) {
         Span span = Span.current();
         span.setAttribute("negotiationState", getStateName(negotiation));
+
+        monitor.debug("Injecting trace context into contract negotiation.");
         openTelemetry.getPropagators().getTextMapPropagator().inject(Context.current(), negotiation, traceContextMapper);
+        monitor.debug("Trace context: " + negotiation.getTraceContextString());
+
+        monitor.debug("Saving negotiation in state " + getStateName(negotiation));
         delegate.save(negotiation);
+
         span.addEvent("Saved", Attributes.builder().put("negotiationState", getStateName(negotiation)).build());
     }
 

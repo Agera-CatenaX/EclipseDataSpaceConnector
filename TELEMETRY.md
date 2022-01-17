@@ -168,6 +168,8 @@ In one scenario, we demonstrate the use of an event to capture the object state 
 
 ![Event in Jaeger](.attachments/jaeger-event.png)
 
+Events were captured only in Jaeger, both in Zipkin and in Application Insights events are not available in the UI.
+
 ## Features shown in the spike
 
 - [Configuration-based](https://github.com/open-telemetry/opentelemetry-java/blob/main/sdk-extensions/autoconfigure/README.md) exporter to Azure Application Insights, Jaeger and Zipkin.

@@ -173,6 +173,12 @@ public class ContractNegotiation {
         return traceContext;
     }
 
+    public String getTraceContextString() {
+        StringBuilder builder = new StringBuilder();
+        traceContext.forEach((k, v) -> builder.append("[" + k + ", " + v + "] "));
+        return builder.toString();
+    }
+
     /**
      * Returns the finalized agreement or null if the negotiation has not been confirmed.
      */
