@@ -14,7 +14,7 @@ services:
       - insights
     environment:
       APPLICATIONINSIGHTS_CONNECTION_STRING: $APPLICATIONINSIGHTS_CONNECTION_STRING
-      APPLICATIONINSIGHTS_ROLE_NAME: consumer
+      APPLICATIONINSIGHTS_ROLE_NAME: consumerA
       edc.api.control.auth.apikey.value: password
       ids.webhook.address: http://consumerA:8181
     volumes:
@@ -28,7 +28,7 @@ services:
       - insights
     environment:
       APPLICATIONINSIGHTS_CONNECTION_STRING: $APPLICATIONINSIGHTS_CONNECTION_STRING
-      APPLICATIONINSIGHTS_ROLE_NAME: provider
+      APPLICATIONINSIGHTS_ROLE_NAME: providerA
       edc.samples.04.asset.path: /tmp
       ids.webhook.address: http://providerA:8181
     volumes:
@@ -154,44 +154,43 @@ services:
     ports:
       - 9411:9411
 
-  #####
-  # Setup for connectors without telemetry.
-  # Connection string must be defined in .env file
-  #####
-
-  consumerNoTelemetry:
-    image: openjdk:11-jre-slim-buster
-    profiles:
-      - all
-      - noTelemetry
-    environment:
-      edc.api.control.auth.apikey.value: password
-      ids.webhook.address: http://consumerNoTelemetry:8181
-    volumes:
-      - .:/app
-    entrypoint: java -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
-
-  providerNoTelemetry:
-    image: openjdk:11-jre-slim-buster
-    profiles:
-      - all
-      - noTelemetry
-    environment:
-      edc.samples.04.asset.path: /tmp
-      ids.webhook.address: http://providerNoTelemetry:8181
-    volumes:
-      - .:/app
-    entrypoint: java -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
-
-  # container to fire cURL request to initiate a contract negotiation process
-  connector-integration-test-no-telemetry:
-    image: adoptopenjdk:11-jre-hotspot
-    profiles:
-      - all
-      - noTelemetry
-    command: /connector-integration-test.sh providerNoTelemetry:8181 consumerNoTelemetry:8181
-    volumes:
-      - ./samples:/samples
-      - ./connector-integration-test.sh:/connector-integration-test.sh
-
-
+#  #####
+#  # Setup for connectors without telemetry.
+#  # Connection string must be defined in .env file
+#  #####
+#
+#  consumerNoTelemetry:
+#    image: openjdk:11-jre-slim-buster
+#    profiles:
+#      - all
+#      - noTelemetry
+#    environment:
+#      edc.api.control.auth.apikey.value: password
+#      ids.webhook.address: http://consumerNoTelemetry:8181
+#    volumes:
+#      - .:/app
+#    entrypoint: java -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
+#
+#  providerNoTelemetry:
+#    image: openjdk:11-jre-slim-buster
+#    profiles:
+#      - all
+#      - noTelemetry
+#    environment:
+#      edc.samples.04.asset.path: /tmp
+#      ids.webhook.address: http://providerNoTelemetry:8181
+#    volumes:
+#      - .:/app
+#    entrypoint: java -jar /app/samples/04-file-transfer/provider/build/libs/provider.jar
+#
+#  # container to fire cURL request to initiate a contract negotiation process
+#  connector-integration-test-no-telemetry:
+#    image: adoptopenjdk:11-jre-hotspot
+#    profiles:
+#      - noTelemetry
+#    command: /connector-integration-test.sh providerNoTelemetry:8181 consumerNoTelemetry:8181
+#    volumes:
+#      - ./samples:/samples
+#      - ./connector-integration-test.sh:/connector-integration-test.sh
+#
+#
