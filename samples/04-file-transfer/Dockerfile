@@ -12,25 +12,10 @@
 #
 #
 
-#CONNECTOR_NAME can be `consumer` or `provider`.
-ARG CONNECTOR_NAME=consumer
-ARG CONNECTOR_URL=localhost:8181
-
-FROM gradle:7.2.0-jdk11-hotspot AS build
-ARG CONNECTOR_NAME
-COPY --chown=gradle:gradle . /home/gradle/project/
-WORKDIR /home/gradle/project/
-RUN gradle samples:04-file-transfer:$CONNECTOR_NAME:build
-
 FROM openjdk:11-jre-slim
-ARG CONNECTOR_NAME
-ARG CONNECTOR_URL
-ENV CONNECTOR_NAME=$CONNECTOR_NAME
-ENV CONNECTOR_URL=$CONNECTOR_URL
+# CONNECTOR_NAME can be `consumer` or `provider`.
+ARG CONNECTOR_NAME=consumer
 
-WORKDIR /app
-COPY --from=build /home/gradle/project/samples/04-file-transfer/$CONNECTOR_NAME/build/libs/$CONNECTOR_NAME.jar /app/app.jar
+COPY samples/04-file-transfer/$CONNECTOR_NAME/build/libs/$CONNECTOR_NAME.jar app.jar
 
-EXPOSE $PORT
-
-ENTRYPOINT java -Dids.webhook.address="${CONNECTOR_URL}" -Dweb.http.port=8181 -jar app.jar
+ENTRYPOINT java -jar app.jar

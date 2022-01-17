@@ -339,16 +339,17 @@ we'll now find a file with the same content as the original file offered by the 
 ## Deploy sample in Kubernetes and test it.
 
 ```bash
-CONSUMER_URL=<consumer-ingress>
-PROVIDER_URL=<provider-ingress>
 REGISTRY=<container-registry-url>
-./samples/04-file-transfer/build_and_push_image.sh consumer $REGISTRY $CONSUMER_URL
-./samples/04-file-transfer/build_and_push_image.sh provider $REGISTRY $PROVIDER_URL
-./samples/04-file-transfer/install_helm_release.sh consumer $REGISTRY
-./samples/04-file-transfer/install_helm_release.sh provider $REGISTRY
+INGRESS_HOST=<ingess-host>
+INGRESS_CLASS_NAME=<ingress-class-name>
+./samples/04-file-transfer/build_and_push_images.sh $REGISTRY
+./samples/04-file-transfer/install_helm_release.sh consumer $REGISTRY $INGRESS_HOST $INGRESS_CLASS_NAME
+./samples/04-file-transfer/install_helm_release.sh provider $REGISTRY $INGRESS_HOST $INGRESS_CLASS_NAME
 ```
 
-Wait for the pods to be in running state and then test contract negotiation. You should get a 200.
+Test contract negotiation. You should get a 200.
 ```bash
+CONSUMER_URL=${INGRESS_HOST}/edcconsumer
+PROVIDER_URL=${INGRESS_HOST}/edcprovider
 curl -v -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "${CONSUMER_URL}/api/negotiation?connectorAddress=${PROVIDER_URL}/api/ids/multipart"
 ```

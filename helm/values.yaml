@@ -3,7 +3,7 @@ image:
   tag: <image-tag>
   pullPolicy: IfNotPresent # Should be set to `Never` if using a local image
 container:
-  port: <edc-port>
+  port: 8181
 ingress:
   host: <host>
   className: <ingress-controller-ingress-class>

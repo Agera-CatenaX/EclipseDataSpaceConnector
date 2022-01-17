@@ -23,6 +23,10 @@ spec:
             - containerPort: {{ .Values.container.port }}
               name: http
 
+          env:
+            - name: ids.webhook.address
+              value: {{ .Values.ingress.host }}/{{ .Values.ingress.prefix }}
+
           readinessProbe:
             initialDelaySeconds: 1
             httpGet:
