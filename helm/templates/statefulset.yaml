@@ -25,7 +25,7 @@ spec:
 
           env:
             - name: ids.webhook.address
-              value: {{ .Values.ingress.host }}/{{ .Values.ingress.prefix }}
+              value: {{ .Values.ingress.host }}{{ .Values.ingress.prefix }}
 
           readinessProbe:
             initialDelaySeconds: 1
