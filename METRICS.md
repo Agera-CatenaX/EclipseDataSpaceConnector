@@ -37,7 +37,7 @@ It also starts containers to fire cURL requests repeatedly to initiate a contrac
 
 #### Application Insights
 
-Monitor the traces in [Application map](https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-map?tabs=net) or in [transaction diagnostic](https://docs.microsoft.com/en-us/azure/azure-monitor/app/transaction-diagnostics) component.
+Monitor the metrics in [metrics explorer](https://docs.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-getting-started).
 
 ![App Insights metric](.attachments/app_insights.png)
 
