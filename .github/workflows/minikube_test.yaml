@@ -9,7 +9,7 @@ on:
 jobs:
   deploy_to_minikube:
     runs-on: ubuntu-latest
-    name: build example and deploy to minikube
+    name: Test helm chart release in minikube.
     env:
       INGRESS_HOST: localedc
     steps:
@@ -42,22 +42,22 @@ jobs:
           docker images
       - name: Deploy to minikube
         run: |
-          helm install r1 helm --debug --set image.repository="provider" --set image.tag="latest" \
+          helm install provider-release helm --debug --set image.repository="provider" --set image.tag="latest" \
             --set ingress.prefix=/edcprovider --set image.pullPolicy="Never" \
             --set ingress.host=${INGRESS_HOST} --set ingress.className=nginx \
             --wait
 
-          helm install r1 helm --debug --set image.repository="consumer" --set image.tag="latest" \
+          helm install consumer-release helm --debug --set image.repository="consumer" --set image.tag="latest" \
             --set ingress.prefix=/edcconsumer --set image.pullPolicy="Never" \
             --set ingress.host=${INGRESS_HOST} --set ingress.className=nginx \
             --wait
+
+          kubectl get all --all-namespaces
 
       - name: Test
         run: |
           MINIKUBE_IP=$(minikube ip)
           sudo echo "${MINIKUBE_IP} ${INGRESS_HOST}" | sudo tee -a /etc/hosts
-          minikube service list
-          kubectl get pods --all-namespaces
-          kubectl get ingress --all-namespaces
+          # Test ingress and the comunication between the 2 connectors.
           curl --fail -v -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "http://${INGRESS_HOST}/edcconsumer/api/negotiation?connectorAddress=http://${INGRESS_HOST}/edcprovider/api/ids/multipart"
 
