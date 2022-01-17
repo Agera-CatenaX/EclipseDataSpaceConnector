@@ -359,8 +359,8 @@ PROVIDER_INGRESS_PREFIX=<consumer-ingress-prefix>
 INGRESS_HOST=<ingress-host>
 
 ./samples/04-file-transfer/build_and_push_images.sh $REGISTRY
-./samples/04-file-transfer/install_helm_release.sh $NAMESPACE $CONSUMER_RELEASE_NAME $CONSUMER_IMAGE $INGRESS_CLASS_NAME $CONSUMER_INGRESS_PREFIX $INGRESS_HOST $IMAGE_PULL_POLICY
-./samples/04-file-transfer/install_helm_release.sh $NAMESPACE $PROVIDER_RELEASE_NAME $PROVIDER_IMAGE $INGRESS_CLASS_NAME $PROVIDER_INGRESS_PREFIX $INGRESS_HOST $IMAGE_PULL_POLICY
+./samples/04-file-transfer/install_helm_release.sh $NAMESPACE $CONSUMER_RELEASE_NAME $CONSUMER_IMAGE $INGRESS_CLASS_NAME $CONSUMER_INGRESS_PREFIX $INGRESS_HOST
+./samples/04-file-transfer/install_helm_release.sh $NAMESPACE $PROVIDER_RELEASE_NAME $PROVIDER_IMAGE $INGRESS_CLASS_NAME $PROVIDER_INGRESS_PREFIX $INGRESS_HOST
 ```
 
 Test contract negotiation. You should get a 200.

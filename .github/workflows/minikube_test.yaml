@@ -42,15 +42,12 @@ jobs:
           docker images
       - name: Deploy to minikube
         run: |
-          helm install provider-release helm --debug --set image.repository="provider" --set image.tag="latest" \
-            --set ingress.prefix=/edcprovider --set image.pullPolicy="Never" \
-            --set ingress.host=${INGRESS_HOST} --set ingress.className=nginx \
-            --wait
 
-          helm install consumer-release helm --debug --set image.repository="consumer" --set image.tag="latest" \
-            --set ingress.prefix=/edcconsumer --set image.pullPolicy="Never" \
-            --set ingress.host=${INGRESS_HOST} --set ingress.className=nginx \
-            --wait
+          ./samples/04-file-transfer/install_helm_release.sh connectors consumer-release consumer nginx \
+          edcconsumer ${INGRESS_HOST} Never
+
+          ./samples/04-file-transfer/install_helm_release.sh connectors provider -release provider nginx \
+                    edcprovider ${INGRESS_HOST} Never
 
           kubectl get all --all-namespaces
 
