@@ -44,13 +44,13 @@ jobs:
         run: |
           helm install r1 helm --debug --set image.repository="provider" --set image.tag="latest" \
             --set ingress.prefix=/edcprovider --set image.pullPolicy="Never" \
-            --set container.port=8181 --set ingress.host=${INGRESS_HOST} --set ingress.className=nginx \
-            -n provider-namespace --create-namespace --wait
+            --set ingress.host=${INGRESS_HOST} --set ingress.className=nginx \
+            --wait
 
           helm install r1 helm --debug --set image.repository="consumer" --set image.tag="latest" \
             --set ingress.prefix=/edcconsumer --set image.pullPolicy="Never" \
-            --set container.port=8181 --set ingress.host=${INGRESS_HOST} --set ingress.className=nginx \
-            -n consumer-namespace --create-namespace --wait
+            --set ingress.host=${INGRESS_HOST} --set ingress.className=nginx \
+            --wait
 
       - name: Test
         run: |
