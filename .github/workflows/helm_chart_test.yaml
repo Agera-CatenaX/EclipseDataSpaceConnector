@@ -1,4 +1,4 @@
-name: Minikube test
+name: Helm chart test
 on:
   push:
     branches:
