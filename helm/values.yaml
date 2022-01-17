@@ -8,3 +8,9 @@ ingress:
   host: <host>
   className: <ingress-controller-ingress-class>
   prefix: <ingress-path-prefix>
+  annotations:
+    <list of annotations>
+    #For example:
+    #nginx.ingress.kubernetes.io/rewrite-target: /$1
+    #nginx.ingress.kubernetes.io/use-regex: "true"
+  nameSuffix: <ingress-name-suffix> # Ingress will have the following name: releaseName-nameSuffix.
