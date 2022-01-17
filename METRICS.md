@@ -41,6 +41,10 @@ Monitor the metrics in [metrics explorer](https://docs.microsoft.com/en-us/azure
 
 ![App Insights metric](.attachments/app_insights.png)
 
+Having an absolute count of operations as a metric is rarely useful, as the representation is a function of both the rapidity with which the counter is incremented and the longevity of the service. Additionally, the counter drops back to zero on a service restart.
+
+Most metric libraries like [Micrometer](https://micrometer.io/docs/concepts#rate-aggregation) perform a rate aggregation automatically before publishing to App Insights. A similar behaviour should be implemented in a JMX based solution.
+
 #### Prometheus
 
 Go to [http://localhost:9090](http://localhost:9090) and browse metrics.
