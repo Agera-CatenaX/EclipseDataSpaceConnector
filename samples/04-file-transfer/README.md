@@ -338,29 +338,16 @@ we'll now find a file with the same content as the original file offered by the 
 
 ## Deploy sample in Kubernetes and test it.
 
-REGISTRY=edcregistry.azurecr.io
-NAMESPACE=connectors
-CONSUMER_RELEASE_NAME=consumer-r1
-PROVIDER_RELEASE_NAME=provider-r1
-INGRESS_HOST=ouphi1101test.switzerlandnorth.cloudapp.azure.com
-INGRESS_CLASS_NAME=nginx
-
+Create [values files](https://helm.sh/docs/chart_template_guide/values_files/) based on the [helm/values.yaml](helm/values.yaml).
+Create one for the consumer and one for the provider.
 
 ```bash
 REGISTRY=<container-registry-url>
 NAMESPACE=<namespace>
-CONSUMER_RELEASE_NAME=<consumer-release-name>
-PROVIDER_RELEASE_NAME=<consumer-release-name>
-CONSUMER_IMAGE=${REGISTRY}/consumer
-PROVIDER_IMAGE=${REGISTRY}/provider
-INGRESS_CLASS_NAME=<ingress-class-name> # Install your ingress controller and pass ingress class name accordingly.
-CONSUMER_INGRESS_PREFIX=<consumer-ingress-prefix>
-PROVIDER_INGRESS_PREFIX=<consumer-ingress-prefix>
-INGRESS_HOST=<ingress-host>
 
 ./samples/04-file-transfer/build_and_push_images.sh $REGISTRY
-./samples/04-file-transfer/install_helm_release.sh $NAMESPACE $CONSUMER_RELEASE_NAME $CONSUMER_IMAGE $INGRESS_CLASS_NAME $CONSUMER_INGRESS_PREFIX $INGRESS_HOST
-./samples/04-file-transfer/install_helm_release.sh $NAMESPACE $PROVIDER_RELEASE_NAME $PROVIDER_IMAGE $INGRESS_CLASS_NAME $PROVIDER_INGRESS_PREFIX $INGRESS_HOST
+./samples/04-file-transfer/install_helm_release.sh $NAMESPACE <consumer-values-file-path> <consumer-release-name>
+./samples/04-file-transfer/install_helm_release.sh $NAMESPACE <provider-values-file-path> <provider-release-name>
 ```
 
 Test contract negotiation. You should get a 200.
