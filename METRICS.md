@@ -25,13 +25,13 @@ The docker-compose file spins multiple containers to demonstrate multiple metric
 
 It also starts containers to fire cURL requests to initiate a contract negotiation process on the consumer connector. This causes EDC to send an HTTP request from the consumer to the provider connector, followed by another message from the provider to the consumer connector. See [the sample README file](samples/04-file-transfer//README.md) for more information about the negotiation process.
 
-### Verify the distributed traces
+### Verify the metrics
 
 #### Application Insights
 
-Monitor the traces in [Application map](https://docs.microsoft.com/en-us/azure/azure-monitor/app/app-map?tabs=net) or in [transaction diagnostic](https://docs.microsoft.com/en-us/azure/azure-monitor/app/transaction-diagnostics) component.
+Monitor the metrics in [metrics explorer](https://docs.microsoft.com/en-us/azure/azure-monitor/essentials/metrics-getting-started).
 
-<TODO>
+![App Insights metric](.attachments/app_insights.png)
 
 #### Prometheus
 
@@ -39,7 +39,7 @@ Go to [http://localhost:9090](http://localhost:9090) and browse metrics.
 
 Example: [query number of save operations per second as measured over the last minute](http://localhost:9090/graph?g0.expr=rate(negotiationsSaved_total%5B1m%5D)&g0.tab=0&g0.stacked=0&g0.show_exemplars=0&g0.range_input=15m).
 
-<TODO>
+![Prometheus metric](.attachments/prometheus.png)
 
 ### About the code
 
