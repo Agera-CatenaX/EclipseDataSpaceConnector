@@ -351,16 +351,21 @@ REGISTRY=<container-registry-url>
 NAMESPACE=<namespace>
 CONSUMER_RELEASE_NAME=<consumer-release-name>
 PROVIDER_RELEASE_NAME=<consumer-release-name>
+CONSUMER_IMAGE=${REGISTRY}/consumer
+PROVIDER_IMAGE=${REGISTRY}/provider
+INGRESS_CLASS_NAME=<ingress-class-name> # Install your ingress controller and pass ingress class name accordingly.
+CONSUMER_INGRESS_PREFIX=<consumer-ingress-prefix>
+PROVIDER_INGRESS_PREFIX=<consumer-ingress-prefix>
 INGRESS_HOST=<ingress-host>
-INGRESS_CLASS_NAME=<ingress-class-name>
+
 ./samples/04-file-transfer/build_and_push_images.sh $REGISTRY
-./samples/04-file-transfer/install_helm_release.sh consumer $REGISTRY $NAMESPACE $CONSUMER_RELEASE_NAME $INGRESS_HOST $INGRESS_CLASS_NAME
-./samples/04-file-transfer/install_helm_release.sh provider $REGISTRY $NAMESPACE $PROVIDER_RELEASE_NAME $INGRESS_HOST $INGRESS_CLASS_NAME
+./samples/04-file-transfer/install_helm_release.sh $NAMESPACE $CONSUMER_RELEASE_NAME $CONSUMER_IMAGE $INGRESS_CLASS_NAME $CONSUMER_INGRESS_PREFIX $INGRESS_HOST $IMAGE_PULL_POLICY
+./samples/04-file-transfer/install_helm_release.sh $NAMESPACE $PROVIDER_RELEASE_NAME $PROVIDER_IMAGE $INGRESS_CLASS_NAME $PROVIDER_INGRESS_PREFIX $INGRESS_HOST $IMAGE_PULL_POLICY
 ```
 
 Test contract negotiation. You should get a 200.
 ```bash
-CONSUMER_URL=${INGRESS_HOST}/edcconsumer
-PROVIDER_URL=${INGRESS_HOST}/edcprovider
+CONSUMER_URL=${INGRESS_HOST}${CONSUMER_INGRESS_PREFIX}
+PROVIDER_URL=${INGRESS_HOST}${PROVIDER_INGRESS_PREFIX}
 curl -v -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "${CONSUMER_URL}/api/negotiation?connectorAddress=${PROVIDER_URL}/api/ids/multipart"
 ```
