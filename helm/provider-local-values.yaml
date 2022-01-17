@@ -6,4 +6,4 @@ container:
   port: 8181
 ingress:
   className: nginx
-  prefix: edcprovider
+  prefix: /edcprovider
