@@ -31,7 +31,7 @@ The docker-compose file spins multiple containers to demonstrate multiple metric
 - Azure Monitor [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) cloud-native Application Performance Management (APM) service
 - [Prometheus](https://prometheus.io/) open-source monitoring system (at [http://localhost:9090](http://localhost:9090))
 
-It also starts containers to fire cURL requests to initiate a contract negotiation process on the consumer connector. This causes EDC to send an HTTP request from the consumer to the provider connector, followed by another message from the provider to the consumer connector. See [the sample README file](samples/04-file-transfer//README.md) for more information about the negotiation process.
+It also starts containers to fire cURL requests repeatedly to initiate a contract negotiation process on the consumer connector. This causes EDC to send an HTTP request from the consumer to the provider connector, followed by another message from the provider to the consumer connector. See [the sample README file](samples/04-file-transfer//README.md) for more information about the negotiation process.
 
 ### Verify the metrics
 
@@ -45,7 +45,7 @@ Monitor the traces in [Application map](https://docs.microsoft.com/en-us/azure/a
 
 Go to [http://localhost:9090](http://localhost:9090) and browse metrics.
 
-Example: [query number of save negotiation operations](http://localhost:9090/graph?g0.expr=org_eclipse_dataspaceconnector_EDCStatus_NegotiationsSaved&g0.tab=0&g0.stacked=0&g0.show_exemplars=0&g0.range_input=15m).
+Example: [query number of save operations per second as measured over the last minute](http://localhost:9090/graph?g0.expr=rate(org_eclipse_dataspaceconnector_EDCStatus_NegotiationsSaved%5B1m%5D)&g0.tab=0&g0.stacked=0&g0.show_exemplars=0&g0.range_input=10m).
 
 ![Prometheus metric](.attachments/prometheus.png)
 
