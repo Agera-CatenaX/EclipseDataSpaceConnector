@@ -1,0 +1,9 @@
+image:
+  repository: consumer
+  tag: latest
+  pullPolicy: Never
+container:
+  port: 8181
+ingress:
+  className: nginx
+  prefix: edcconsumer
