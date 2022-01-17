@@ -27,7 +27,7 @@ import java.util.List;
 
 public class ContractNegotiationStoreMetricsDecorator implements ContractNegotiationStore {
     private final ContractNegotiationStore delegate;
-    private Counter saveCounter = Metrics.counter("save", "type", "ContractNegotiation");
+    private Counter saveCounter = Metrics.counter("negotiationsSaved");
 
     public ContractNegotiationStoreMetricsDecorator(ContractNegotiationStore delegate) {
         this.delegate = delegate;

@@ -1,4 +1,4 @@
-# Metrics spike
+# Micrometer Metrics spike
 
 The sample `04-file-transfer` was adapted to demonstrate collection of metrics using the Micrometer library. Metrics are either exposed through a Prometheus-compatible web endpoint, or automatically collected by the Application Insights agent.
 
@@ -16,12 +16,12 @@ To use also Application Insights as a telemetry backend you have to provide `APP
 ./gradlew clean
 ./gradlew samples:04-file-transfer:consumer:build
 ./gradlew samples:04-file-transfer:provider:build
-docker-compose up
+docker-compose --profile prometheus up
 ```
 
 The docker-compose file spins multiple containers to demonstrate multiple metrics:
-- Azure Monitor [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) cloud-native Application Performance Management (APM) service
-- [Prometheus](https://prometheus.io/) open-source monitoring system (at [http://localhost:9090](http://localhost:9090))
+- With `--profile azure`: Azure Monitor [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) cloud-native Application Performance Management (APM) service
+- With `--profile prometheus`:  [Prometheus](https://prometheus.io/) open-source monitoring system (at [http://localhost:9090](http://localhost:9090))
 
 It also starts containers to fire cURL requests to initiate a contract negotiation process on the consumer connector. This causes EDC to send an HTTP request from the consumer to the provider connector, followed by another message from the provider to the consumer connector. See [the sample README file](samples/04-file-transfer//README.md) for more information about the negotiation process.
 
@@ -35,7 +35,9 @@ Monitor the traces in [Application map](https://docs.microsoft.com/en-us/azure/a
 
 #### Prometheus
 
-Go to [http://localhost:9090](http://localhost:9090).
+Go to [http://localhost:9090](http://localhost:9090) and browse metrics.
+
+Example: [query number of save operations per second as measured over the last minute](http://localhost:9090/graph?g0.expr=rate(negotiationsSaved_total%5B1m%5D)&g0.tab=0&g0.stacked=0&g0.show_exemplars=0&g0.range_input=15m).
 
 <TODO>
 
@@ -54,7 +56,7 @@ Metrics.addRegistry(INSTANCE);
 We then use the Global registry in application code to create counters. Here we create a simple counter for the number of times a `ContractNegotiation` is saved (created or updated) in the in-memory store.
 
 ```java
-private Counter saveCounter = Metrics.counter("save", "type", "ContractNegotiation");
+private Counter saveCounter = Metrics.counter("negotiationsSaved");
 ```
 
 ```java

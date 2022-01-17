@@ -11,4 +11,7 @@ chmod +x wait-for-it.sh
 ./wait-for-it.sh -t 240 $provider
 ./wait-for-it.sh -t 240 $consumer
 
-curl -X POST -H "Content-Type: application/json" -d @/samples/04-file-transfer/contractoffer.json "http://$consumer/api/negotiation?connectorAddress=http://$provider/api/ids/multipart"
+while true; do
+  curl -X POST -H "Content-Type: application/json" -d @/samples/04-file-transfer/contractoffer.json "http://$consumer/api/negotiation?connectorAddress=http://$provider/api/ids/multipart"
+  sleep 1
+done
