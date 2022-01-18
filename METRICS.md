@@ -39,7 +39,7 @@ The test script sends a little under one request per second to one of two Consum
 
 Go to [http://localhost:9090](http://localhost:9090) and browse metrics.
 
-Example: [query number of save operations per minute as measured over the last minute](http://localhost:9090/graph?g0.expr=rate(negotiationsSaved_total%5B1m%5D)&g0.tab=0&g0.stacked=0&g0.show_exemplars=0&g0.range_input=15m).
+Example: [query number of save operations per second as measured over the last minute](http://localhost:9090/graph?g0.expr=rate(negotiationsSaved_total%5B1m%5D)&g0.tab=0&g0.stacked=0&g0.show_exemplars=0&g0.range_input=15m).
 
 ![Prometheus metric](.attachments/prometheus.png)
 
@@ -79,15 +79,6 @@ public String getMetrics() {
 
 Of course, in a production setup we would modularize these components properly.
 
-We can access the Consumer Connector metrics endpoint at [http://localhost:8181/api/metrics](http://localhost:8181/api/metrics):
-
-```sh
-> curl http://localhost:8181/api/metrics
-# HELP save_total  
-# TYPE save_total counter
-save_total{type="ContractNegotiation",} 3.0
-```
-
 We set up Docker Compose to deploy multiple replicas per service.
 
 ```
@@ -107,6 +98,16 @@ Name:	consumerP
 Address: 172.19.0.6
 Name:	consumerP
 Address: 172.19.0.4
+```
+
+We can access the Consumer Connector metrics endpoint for each replica at `docker exec -it prometheus wget -qO - <IP>:8181/api/metrics`:
+
+```sh
+> docker exec -it prometheus wget -qO - 172.19.0.6:8181/api/metrics                                                                                                            spike/micrometer-metrics
+# HELP negotiationsSaved_total  
+# TYPE negotiationsSaved_total counter
+negotiationsSaved_total 904.0
+
 ```
 
 In [the Prometheus server configuration file](prometheus/prometheus.yml), we configure the server to scrape the consumer metrics endpoints for the two available replicas.
