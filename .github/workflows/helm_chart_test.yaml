@@ -54,5 +54,5 @@ jobs:
           PROVIDER_URL=${INGRESS_HOST}/edcprovider
           # Test ingress and the communication between the 2 connectors.
           NEGOTIATION_ID=$(curl -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "http://${CONSUMER_URL}/api/negotiation?connectorAddress=http://${PROVIDER_URL}/api/ids/multipart")
-          curl -v --fail -X GET -H 'X-Api-Key: ${CONTROL_AUTH_APIKEY}' "http://${CONSUMER_URL}/api/control/negotiation/${NEGOTIATION_ID}"
+          curl -v --fail -X GET -H "X-Api-Key: ${CONTROL_AUTH_APIKEY}" "http://${CONSUMER_URL}/api/control/negotiation/${NEGOTIATION_ID}"
 
