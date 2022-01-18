@@ -49,6 +49,9 @@ jobs:
         run: |
           MINIKUBE_IP=$(minikube ip)
           sudo echo "${MINIKUBE_IP} ${INGRESS_HOST}" | sudo tee -a /etc/hosts
-          # Test ingress and the comunication between the 2 connectors.
-          curl --fail -v -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "http://${INGRESS_HOST}/edcconsumer/api/negotiation?connectorAddress=http://${INGRESS_HOST}/edcprovider/api/ids/multipart"
+          CONSUMER_URL=${INGRESS_HOST}/edcconsumer
+          PROVIDER_URL=${INGRESS_HOST}/edcprovider
+          # Test ingress and the communication between the 2 connectors.
+          NEGOTIATION_ID=$(curl -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "http://${CONSUMER_URL}/api/negotiation?connectorAddress=http://${PROVIDER_URL}/api/ids/multipart")
+          curl -v --fail -X GET -H 'X-Api-Key: password' "http://${CONSUMER_URL}/api/control/negotiation/${NEGOTIATION_ID}"
 

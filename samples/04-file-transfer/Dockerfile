@@ -18,4 +18,5 @@ ARG CONNECTOR_NAME=consumer
 
 COPY samples/04-file-transfer/$CONNECTOR_NAME/build/libs/$CONNECTOR_NAME.jar app.jar
 
-ENTRYPOINT java -Dids.webhook.address=${IDS_WEBHOOK_ADDRESS} -jar app.jar
+# edc.api.control.auth.apikey.value is harcoded for the spike as it is used for CI but should be a secret.
+ENTRYPOINT java -Dids.webhook.address=${IDS_WEBHOOK_ADDRESS} -Dedc.api.control.auth.apikey.value=password -jar app.jar
