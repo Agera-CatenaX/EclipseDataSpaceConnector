@@ -26,6 +26,11 @@ spec:
           env:
             - name: IDS_WEBHOOK_ADDRESS
               value: "{{ .Values.ingress.scheme }}://{{ .Values.ingress.host }}{{ .Values.ingress.prefix }}"
+            - name: CONTROL_AUTH_APIKEY
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Release.Name }}-connector-secret
+                  key: CONTROL_AUTH_APIKEY
 
           readinessProbe:
             initialDelaySeconds: 1

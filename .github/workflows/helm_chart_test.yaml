@@ -11,6 +11,7 @@ jobs:
     name: Test helm chart release in minikube.
     env:
       INGRESS_HOST: localedc
+      CONTROL_AUTH_APIKEY: password1
     steps:
       - uses: actions/checkout@v2
       - name: Cache packages
@@ -41,7 +42,7 @@ jobs:
           docker images
       - name: Deploy to minikube
         run: |
-          helm install -f helm/consumer-local-values.yaml --set ingress.host=${INGRESS_HOST} consumer-release helm --debug --wait
+          helm install -f helm/consumer-local-values.yaml --set controlauthapikey=${CONTROL_AUTH_APIKEY} --set ingress.host=${INGRESS_HOST} consumer-release helm --debug --wait
           helm install -f helm/provider-local-values.yaml --set ingress.host=${INGRESS_HOST} provider-release helm --debug --wait
           kubectl get all --all-namespaces
 
@@ -53,5 +54,5 @@ jobs:
           PROVIDER_URL=${INGRESS_HOST}/edcprovider
           # Test ingress and the communication between the 2 connectors.
           NEGOTIATION_ID=$(curl -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "http://${CONSUMER_URL}/api/negotiation?connectorAddress=http://${PROVIDER_URL}/api/ids/multipart")
-          curl -v --fail -X GET -H 'X-Api-Key: password' "http://${CONSUMER_URL}/api/control/negotiation/${NEGOTIATION_ID}"
+          curl -v --fail -X GET -H 'X-Api-Key: ${CONTROL_AUTH_APIKEY}' "http://${CONSUMER_URL}/api/control/negotiation/${NEGOTIATION_ID}"
 
