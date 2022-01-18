@@ -24,8 +24,8 @@ spec:
               name: http
 
           env:
-            - name: ids.webhook.address
-              value: {{ .Values.ingress.host }}{{ .Values.ingress.prefix }}
+            - name: IDS_WEBHOOK_ADDRESS
+              value: "{{ .Values.ingress.scheme }}://{{ .Values.ingress.host }}{{ .Values.ingress.prefix }}"
 
           readinessProbe:
             initialDelaySeconds: 1

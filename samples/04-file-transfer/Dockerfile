@@ -18,4 +18,4 @@ ARG CONNECTOR_NAME=consumer
 
 COPY samples/04-file-transfer/$CONNECTOR_NAME/build/libs/$CONNECTOR_NAME.jar app.jar
 
-ENTRYPOINT java -jar app.jar
+ENTRYPOINT java -Dids.webhook.address=${IDS_WEBHOOK_ADDRESS} -jar app.jar

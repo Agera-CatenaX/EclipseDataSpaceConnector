@@ -8,6 +8,7 @@ ingress:
   host: <host>
   className: <ingress-controller-ingress-class>
   prefix: <ingress-path-prefix>
+  scheme: http # It is used to set up ids.webhook.address of the connector.
   annotations:
     <list of annotations>
     #For example:
