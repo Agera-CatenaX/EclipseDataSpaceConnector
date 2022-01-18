@@ -29,7 +29,7 @@ docker-compose --profile prometheus up
 
 The docker-compose file spins multiple containers to demonstrate multiple metrics:
 - With `--profile azure`: Azure Monitor [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) cloud-native Application Performance Management (APM) service
-- With `--profile prometheus`:  [Prometheus](https://prometheus.io/) open-source monitoring system (at [http://localhost:9090](http://localhost:9090))
+- With `--profile prometheus`: [Prometheus](https://prometheus.io/) open-source monitoring system (at [http://localhost:9090](http://localhost:9090))
 
 It also starts containers to fire cURL requests repeatedly to initiate a contract negotiation process on the consumer connector. This causes EDC to send an HTTP request from the consumer to the provider connector, followed by another message from the provider to the consumer connector. See [the sample README file](samples/04-file-transfer//README.md) for more information about the negotiation process.
 
@@ -41,21 +41,25 @@ Monitor the metrics in [metrics explorer](https://docs.microsoft.com/en-us/azure
 
 ![App Insights metric](.attachments/app_insights.png)
 
+The test script sends a little under one request per second to one of two Consumer Connector instances. Each request results in three save operations on the Consumer side, and three on the Provider side. This results in a little under 360 operations per minute. Note the bin granularity is indicated on the top right (here *"Automatic - 1 minute"*).
+
 Having an absolute count of operations as a metric is rarely useful, as the representation is a function of both the rapidity with which the counter is incremented and the longevity of the service. Additionally, the counter drops back to zero on a service restart.
 
-Most metric libraries like [Micrometer](https://micrometer.io/docs/concepts#rate-aggregation) perform a rate aggregation automatically before publishing to App Insights. A similar behaviour should be implemented in a JMX based solution.
+The App Insights agent configures the  [Micrometer](https://micrometer.io/docs/concepts#rate-aggregation) metrics library to perform a rate aggregation automatically before publishing metrics. A similar behaviour should be implemented in a JMX-based solution.
 
 #### Prometheus
 
 Go to [http://localhost:9090](http://localhost:9090) and browse metrics.
 
-Example: [query number of save operations per second as measured over the last minute](http://localhost:9090/graph?g0.expr=rate(org_eclipse_dataspaceconnector_EDCStatus_NegotiationsSaved%5B1m%5D)&g0.tab=0&g0.stacked=0&g0.show_exemplars=0&g0.range_input=5m).
+Example: [query number of save operations per second as measured over the last minute](http://localhost:9090/graph?g0.expr=rate(org_eclipse_dataspaceconnector_EDCStatus_NegotiationsSaved%5B1m%5D)&g0.tab=0&g0.stacked=0&g0.show_exemplars=0&g0.range_input=10m).
 
 ![Prometheus metric](.attachments/prometheus.png)
 
 Similar query, [aggregating by service](http://localhost:9090/graph?g0.expr=sum%20by%28service%29%20%28rate%28org_eclipse_dataspaceconnector_EDCStatus_NegotiationsSaved%5B5m%5D%29%29&g0.tab=0&g0.stacked=0&g0.show_exemplars=0&g0.range_input=5m).
 
 ![Prometheus metric](.attachments/prometheus-sum.png)
+
+We expect a little under 3 operations per second for each service. Note the bin granularity of the Prometheus [`rate` operator](https://prometheus.io/docs/prometheus/latest/querying/functions/#rate) is always 1 second.
 
 ### About the code
 
@@ -88,6 +92,13 @@ Application Insights is configured to collect the custom JMX metric in `applicat
   ]
 }
 ```
+
+JMX Metrics are exported to a prometheus endpoint by the [JMX exporter agent](https://github.com/prometheus/jmx_exporter). 
+
+```bash
+java -javaagent:/app/jmx_prometheus_javaagent-0.16.1.jar=9464:/app/jmx_prometheus_config.yaml
+```
+
 We set up Docker Compose to deploy multiple replicas per service.
 
 ```
@@ -112,16 +123,15 @@ Address: 172.19.0.4
 We can access the Consumer Connector metrics endpoint for each replica:
 
 ```sh
-> docker exec -it prometheus wget -qO - 172.19.0.6:8181/api/metrics                                                                                                            # HELP negotiationsSaved_total  
-# TYPE negotiationsSaved_total counter
-negotiationsSaved_total 904.0
+> docker exec -it prometheus wget -qO - 172.19.0.6:9464/metrics
+# TYPE java_lang_G1_Old_Gen_CollectionUsageThresholdCount untyped
+java_lang_G1_Old_Gen_CollectionUsageThresholdCount{type="MemoryPool",} 0.0
+# HELP org_eclipse_dataspaceconnector_EDCStatus_NegotiationsSaved Attribute exposed for management (org.eclipse.dataspaceconnector<name=EDCStatus><>NegotiationsSaved)
+# TYPE org_eclipse_dataspaceconnector_EDCStatus_NegotiationsSaved untyped
+org_eclipse_dataspaceconnector_EDCStatus_NegotiationsSaved 3.0
 ```
 
-JMX Metrics are exported to a prometheus endpoint by the [JMX exporter agent](https://github.com/prometheus/jmx_exporter). 
-
-```bash
-java -javaagent:/app/jmx_prometheus_javaagent-0.16.1.jar=9464:/app/jmx_prometheus_config.yaml
-```
+The metrics contain system metrics as well as our custom metrics.
 
 In [the Prometheus server configuration file](prometheus/prometheus.yml), we configure the server to scrape the consumer metrics endpoints for the two available replicas.
 
@@ -129,10 +139,10 @@ In [the Prometheus server configuration file](prometheus/prometheus.yml), we con
 scrape_configs:
   - job_name: Consumer
     dns_sd_configs:
-      - names:
-          - 'consumerP'
-        type: 'A'
-        port: 9464
+    - names:
+      - 'consumerP'
+      type: 'A'
+      port: 9464
       ...
 ```
 
