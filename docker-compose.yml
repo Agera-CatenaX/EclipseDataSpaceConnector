@@ -56,8 +56,6 @@ services:
     environment:
       edc.api.control.auth.apikey.value: password
       ids.webhook.address: http://consumerP:8181
-      TASK_SLOT: '{{.Task.Slot}}'
-      SWARM_PEERS: "tasks.{{.Service.Name}}"
     volumes:
       - .:/app
     entrypoint: java -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
