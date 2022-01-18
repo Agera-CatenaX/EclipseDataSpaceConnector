@@ -21,9 +21,9 @@ docker-compose --profile prometheus up
 
 The docker-compose file spins multiple containers to demonstrate multiple metrics:
 - With `--profile azure`: Azure Monitor [Application Insights](https://docs.microsoft.com/azure/azure-monitor/app/app-insights-overview) cloud-native Application Performance Management (APM) service
-- With `--profile prometheus`:  [Prometheus](https://prometheus.io/) open-source monitoring system (at [http://localhost:9090](http://localhost:9090))
+- With `--profile prometheus`: [Prometheus](https://prometheus.io/) open-source monitoring system (at [http://localhost:9090](http://localhost:9090))
 
-It also starts containers to fire cURL requests to initiate a contract negotiation process on the consumer connector. This causes EDC to send an HTTP request from the consumer to the provider connector, followed by another message from the provider to the consumer connector. See [the sample README file](samples/04-file-transfer//README.md) for more information about the negotiation process.
+It also starts containers to fire cURL requests repeatedly to initiate a contract negotiation process on the consumer connector. This causes EDC to send an HTTP request from the consumer to the provider connector, followed by another message from the provider to the consumer connector. See [the sample README file](samples/04-file-transfer//README.md) for more information about the negotiation process.
 
 ### Verify the metrics
 
@@ -119,11 +119,7 @@ scrape_configs:
       - 'consumerP'
       type: 'A'
       port: 8181
-    relabel_configs:
-    - source_labels:
-      - __address__ # always exists
-      target_label: service
-      replacement: Consumer
+      ...
 ```
 
 ## Features shown in the spike
