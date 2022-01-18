@@ -216,6 +216,7 @@ to authenticate ourselves to use this endpoint. For this, we use the `X-Api-Key`
 in our consumer's `config.properties`.
 
 ```bash
+curl -X GET -H 'X-Api-Key: password' "http://localhost:9191/api/control/negotiation/{UUID}"
 ```
 
 This will return a full description of the negotiation (see sample output below). When the state reads `1200` (=
