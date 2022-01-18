@@ -100,14 +100,12 @@ Name:	consumerP
 Address: 172.19.0.4
 ```
 
-We can access the Consumer Connector metrics endpoint for each replica at `docker exec -it prometheus wget -qO - <IP>:8181/api/metrics`:
+We can access the Consumer Connector metrics endpoint for each replica:
 
 ```sh
-> docker exec -it prometheus wget -qO - 172.19.0.6:8181/api/metrics                                                                                                            spike/micrometer-metrics
-# HELP negotiationsSaved_total  
+> docker exec -it prometheus wget -qO - 172.19.0.6:8181/api/metrics                                                                                                            # HELP negotiationsSaved_total  
 # TYPE negotiationsSaved_total counter
 negotiationsSaved_total 904.0
-
 ```
 
 In [the Prometheus server configuration file](prometheus/prometheus.yml), we configure the server to scrape the consumer metrics endpoints for the two available replicas.
