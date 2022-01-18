@@ -33,6 +33,8 @@ Monitor the metrics in [metrics explorer](https://docs.microsoft.com/en-us/azure
 
 ![App Insights metric](.attachments/app_insights.png)
 
+The test script sends a little under one request per second to one of two Consumer Connector instances. Each request results in three save operations on the Consumer side, and three on the Provider side. This results in a little under 360 operations per minute. Note the bin granularity is indicated on the top right (here *"Automatic - 1 minute"*).
+
 #### Prometheus
 
 Go to [http://localhost:9090](http://localhost:9090) and browse metrics.
@@ -40,6 +42,8 @@ Go to [http://localhost:9090](http://localhost:9090) and browse metrics.
 Example: [query number of save operations per minute as measured over the last minute](http://localhost:9090/graph?g0.expr=sum(rate(negotiationsSaved_total%5B1m%5D))%2Fcount(negotiationsSaved_total)*60&g0.tab=0&g0.stacked=0&g0.show_exemplars=0&g0.range_input=5m).
 
 ![Prometheus metric](.attachments/prometheus.png)
+
+We only instrumented the application to expose metrics on the Consumer side. Therefore, we expect a little under 3 operations per second across the two instances. Note the bin granularity of the Prometheus [`rate `operator](https://prometheus.io/docs/prometheus/latest/querying/functions/#rate) is always 1 second.
 
 ### About the code
 
@@ -74,6 +78,36 @@ public String getMetrics() {
 ```
 
 Of course, in a production setup we would modularize these components properly.
+
+We can access the Consumer Connector metrics endpoint at [http://localhost:8181/api/metrics](http://localhost:8181/api/metrics):
+
+```sh
+> curl http://localhost:8181/api/metrics
+# HELP save_total  
+# TYPE save_total counter
+save_total{type="ContractNegotiation",} 3.0
+```
+
+We set up Docker Compose to deploy multiple replicas per service.
+
+```
+services:
+  consumerP:
+    deploy:
+      replicas: 2
+```
+
+```
+> docker exec -it prometheus nslookup -type=A consumerP
+Server:		127.0.0.11
+Address:	127.0.0.11:53
+
+Non-authoritative answer:
+Name:	consumerP
+Address: 172.19.0.6
+Name:	consumerP
+Address: 172.19.0.4
+```
 
 In [the Prometheus server configuration file](prometheus/prometheus.yml), we configure the server to scrape the consumer metrics endpoints for the two available replicas.
 
