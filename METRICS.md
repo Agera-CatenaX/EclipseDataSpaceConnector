@@ -39,7 +39,7 @@ The test script sends a little under one request per second to one of two Consum
 
 Go to [http://localhost:9090](http://localhost:9090) and browse metrics.
 
-Example: [query number of save operations per minute as measured over the last minute](http://localhost:9090/graph?g0.expr=sum(rate(negotiationsSaved_total%5B1m%5D))%2Fcount(negotiationsSaved_total)*60&g0.tab=0&g0.stacked=0&g0.show_exemplars=0&g0.range_input=5m).
+Example: [query number of save operations per minute as measured over the last minute](http://localhost:9090/graph?g0.expr=rate(negotiationsSaved_total%5B1m%5D)&g0.tab=0&g0.stacked=0&g0.show_exemplars=0&g0.range_input=15m).
 
 ![Prometheus metric](.attachments/prometheus.png)
 
