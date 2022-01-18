@@ -53,18 +53,18 @@ Example: [query number of save operations per second as measured over the last m
 
 ![Prometheus metric](.attachments/prometheus.png)
 
+Similar query, [aggregating by service](http://localhost:9090/graph?g0.expr=sum%20by%28service%29%20%28rate%28org_eclipse_dataspaceconnector_EDCStatus_NegotiationsSaved%5B5m%5D%29%29&g0.tab=0&g0.stacked=0&g0.show_exemplars=0&g0.range_input=5m).
+
+![Prometheus metric](.attachments/prometheus-sum.png)
+
 ### About the code
 
 An `EDCStatus` MBean is registered using JMX: 
 
 ```java
-EDCStatus edcStatus = new EDCStatus();
-try {
-    var objectName = new ObjectName("org.eclipse.dataspaceconnector:name=EDCStatus");
-    ManagementFactory.getPlatformMBeanServer().registerMBean(edcStatus, objectName);
-} catch (MalformedObjectNameException | NotCompliantMBeanException | InstanceAlreadyExistsException | MBeanRegistrationException e) {
-    monitor.severe("Could not register MBean", e);
-}
+var edcStatus = new EDCStatus();
+var objectName = new ObjectName("org.eclipse.dataspaceconnector:name=EDCStatus");
+ManagementFactory.getPlatformMBeanServer().registerMBean(edcStatus, objectName);
 ```
 
 The MBean is later used to track the amount of times a negotiation save operation is performed:
@@ -88,6 +88,34 @@ Application Insights is configured to collect the custom JMX metric in `applicat
   ]
 }
 ```
+We set up Docker Compose to deploy multiple replicas per service.
+
+```
+services:
+  consumerP:
+    deploy:
+      replicas: 2
+```
+
+```
+> docker exec -it prometheus nslookup -type=A consumerP
+Server:		127.0.0.11
+Address:	127.0.0.11:53
+
+Non-authoritative answer:
+Name:	consumerP
+Address: 172.19.0.6
+Name:	consumerP
+Address: 172.19.0.4
+```
+
+We can access the Consumer Connector metrics endpoint for each replica:
+
+```sh
+> docker exec -it prometheus wget -qO - 172.19.0.6:8181/api/metrics                                                                                                            # HELP negotiationsSaved_total  
+# TYPE negotiationsSaved_total counter
+negotiationsSaved_total 904.0
+```
 
 JMX Metrics are exported to a prometheus endpoint by the [JMX exporter agent](https://github.com/prometheus/jmx_exporter). 
 
@@ -99,7 +127,7 @@ In [the Prometheus server configuration file](prometheus/prometheus.yml), we con
 
 ```yaml
 scrape_configs:
-  - job_name: services
+  - job_name: Consumer
     dns_sd_configs:
       - names:
           - 'consumerP'
