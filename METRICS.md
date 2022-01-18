@@ -103,7 +103,8 @@ Address: 172.19.0.4
 We can access the Consumer Connector metrics endpoint for each replica:
 
 ```sh
-> docker exec -it prometheus wget -qO - 172.19.0.6:8181/api/metrics                                                                                                            # HELP negotiationsSaved_total  
+> docker exec -it prometheus wget -qO - 172.19.0.6:8181/api/metrics
+# HELP negotiationsSaved_total  
 # TYPE negotiationsSaved_total counter
 negotiationsSaved_total 904.0
 ```
