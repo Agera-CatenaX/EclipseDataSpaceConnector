@@ -10,6 +10,13 @@
   helm install -f <your-values-file> <release-name> helm --wait
 ```
 
+## Consideration for building the final chart.
+
+- Helm chart is tested in github actions on PRs with medyagh/setup-minikube@master.
+- Ingress should be configurable.
+- env variables and secrets should be configurable.
+- The chart should be tested with sample 05 to make sure it covers well use case with cloud resources.
+
 ## Install helm release with minikube
 
 Start minikube:
