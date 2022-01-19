@@ -3,7 +3,7 @@
 ## Install helm release
 
 - Build your image. Push it to your container repository if needed.
-- Create a [values file](https://helm.sh/docs/chart_template_guide/values_files/). Use (helm/values.yaml) as a template.
+- Create a [values file](https://helm.sh/docs/chart_template_guide/values_files/). Use (helm/values-template.yaml) as a template.
 - Install your helm release:
 
 ```bash
@@ -31,7 +31,7 @@ cd DataspaceConnector
 docker build . -f launchers/ids-connector/Dockerfile -t connector:latest
 ```
 
-Choose the correct values in helm/values.yaml.
+Choose the correct values in helm/values-template.yaml.
 
 Install helm release
 

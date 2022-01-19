@@ -339,7 +339,7 @@ we'll now find a file with the same content as the original file offered by the 
 
 ## Deploy sample in Kubernetes and test it.
 
-Create [values files](https://helm.sh/docs/chart_template_guide/values_files/) based on the [helm/values.yaml](helm/values.yaml).
+Create [values files](https://helm.sh/docs/chart_template_guide/values_files/) based on the [helm/values-template.yaml](helm/values-template.yaml).
 Create one for the consumer and one for the provider.
 
 ```bash
