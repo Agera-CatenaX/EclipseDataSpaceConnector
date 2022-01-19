@@ -18,6 +18,7 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 
 import java.io.ByteArrayInputStream;
+import java.io.OutputStream;
 
 /**
  * A system responsible for reading data from a source (e.g. S3 bucket,...)
@@ -26,4 +27,6 @@ public interface DataReader {
     boolean canHandle(String type);
 
     Result<ByteArrayInputStream> read(DataAddress source);
+
+    Result<Void> readAsStream(DataAddress source, OutputStream stream);
 }

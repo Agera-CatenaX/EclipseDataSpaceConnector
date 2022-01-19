@@ -26,6 +26,8 @@ import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
 import org.eclipse.dataspaceconnector.transfer.inline.spi.DataStreamPublisher;
 import org.jetbrains.annotations.NotNull;
 
+import java.io.ByteArrayOutputStream;
+
 import static java.lang.String.format;
 
 public class InlineDataFlowController implements DataFlowController {
@@ -75,10 +77,15 @@ public class InlineDataFlowController implements DataFlowController {
             var reader = dataOperatorRegistry.getReader(source.getType());
             var writer = dataOperatorRegistry.getWriter(destinationType);
 
-            var readResult = reader.read(source);
+            //var readResult = reader.read(source);
+            // Output stream on which data will be written as it reads from source.
+            var byteArrayOutputStream = new ByteArrayOutputStream();
+            var readResult = reader.readAsStream(source, byteArrayOutputStream);
+
             if (readResult.failed()) {
                 return new DataFlowInitiateResult(ResponseStatus.ERROR_RETRY, "Failed to read data from source: " + readResult.getFailure().getMessages());
             }
+            
             var writeResult = writer.write(dataRequest.getDataDestination(), dataRequest.getAssetId(), readResult.getContent(), secret);
             if (writeResult.failed()) {
                 return new DataFlowInitiateResult(ResponseStatus.ERROR_RETRY, "Failed to write data to destination: " + writeResult.getFailure().getMessages());

@@ -7,6 +7,7 @@ import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.transfer.inline.spi.DataReader;
 
 import java.io.ByteArrayInputStream;
+import java.io.OutputStream;
 
 public class BlobStoreReader implements DataReader {
 
@@ -27,5 +28,15 @@ public class BlobStoreReader implements DataReader {
         var container = source.getProperty(AzureBlobStoreSchema.CONTAINER_NAME);
         var blobName = source.getProperty(AzureBlobStoreSchema.BLOB_NAME);
         return Result.success(new ByteArrayInputStream(blobStoreApi.getBlob(account, container, blobName)));
+    }
+
+    @Override
+    public Result<Void> readAsStream(DataAddress source, OutputStream outputStream) {
+        var account = source.getProperty(AzureBlobStoreSchema.ACCOUNT_NAME);
+        var container = source.getProperty(AzureBlobStoreSchema.CONTAINER_NAME);
+        var blobName = source.getProperty(AzureBlobStoreSchema.BLOB_NAME);
+        blobStoreApi.getBlobAsStream(account, container, blobName, outputStream);
+
+        return Result.success();
     }
 }
