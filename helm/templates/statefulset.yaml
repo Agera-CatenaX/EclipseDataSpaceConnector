@@ -28,11 +28,9 @@ spec:
             - name: "{{ $envName }}"
               value: "{{ $value }}"
 {{- end }}
-            - name: CONTROL_AUTH_APIKEY
-              valueFrom:
-                secretKeyRef:
-                  name: {{ .Release.Name }}-connector-secret
-                  key: CONTROL_AUTH_APIKEY
+          envFrom:
+            - secretRef:
+                name: {{ .Release.Name }}-connector-secret
 
           readinessProbe:
             initialDelaySeconds: 1
