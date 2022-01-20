@@ -24,8 +24,10 @@ spec:
               name: http
 
           env:
-            - name: IDS_WEBHOOK_ADDRESS
-              value: "{{ .Values.ingress.scheme }}://{{ .Values.ingress.host }}{{ .Values.ingress.prefix }}"
+{{- range $envName, $value := .Values.edc.env }}
+            - name: "{{ $envName }}"
+              value: "{{ $value }}"
+{{- end }}
             - name: CONTROL_AUTH_APIKEY
               valueFrom:
                 secretKeyRef:

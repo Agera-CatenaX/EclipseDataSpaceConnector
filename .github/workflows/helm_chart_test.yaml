@@ -42,8 +42,10 @@ jobs:
           docker images
       - name: Deploy to minikube
         run: |
-          helm install -f helm/consumer-local-values.yaml --set controlauthapikey=${CONTROL_AUTH_APIKEY} --set ingress.host=${INGRESS_HOST} consumer-release helm --debug --wait
-          helm install -f helm/provider-local-values.yaml --set controlauthapikey=${CONTROL_AUTH_APIKEY} --set ingress.host=${INGRESS_HOST} provider-release helm --debug --wait
+          CONSUMER_URL="http://${INGRESS_HOST}/edcconsumer"
+          PROVIDER_URL="http://${INGRESS_HOST}/edcprovider"
+          helm install -f helm/consumer-local-values.yaml --set edc.env.IDS_WEBHOOK_ADDRESS=${CONSUMER_URL} --set controlauthapikey=${CONTROL_AUTH_APIKEY} --set ingress.host=${INGRESS_HOST} consumer-release helm --debug --wait
+          helm install -f helm/provider-local-values.yaml --set edc.env.IDS_WEBHOOK_ADDRESS=${PROVIDER_URL} --set controlauthapikey=${CONTROL_AUTH_APIKEY} --set ingress.host=${INGRESS_HOST} provider-release helm --debug --wait
           kubectl get all --all-namespaces
 
       - name: Test

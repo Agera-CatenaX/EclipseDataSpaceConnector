@@ -16,3 +16,7 @@ ingress:
     #nginx.ingress.kubernetes.io/use-regex: "true"
   nameSuffix: <ingress-name-suffix> # Ingress will have the following name: releaseName-nameSuffix.
 controlauthapikey: <value for edc.api.control.auth.apikey.value config>
+edc:
+  env:
+    # list of env
+
