@@ -122,10 +122,6 @@ Contains several scripts to deploy a connector in an AKS cluster on Microsoft Az
 
 Please refer to the dedicated [style guide](styleguide.md) and the patterns we documented in [architecture principles](docs/architecture-principles.md).
 
-## Roadmap
-
-[TBW]
-
 ## Contributing
 
 See [how to contribute](CONTRIBUTING.md).
