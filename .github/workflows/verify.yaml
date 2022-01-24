@@ -33,15 +33,15 @@ jobs:
 
       - name: find
         run: |
-          find **/jacoco*.xml
+          find . -name '*.xml'; true
 
       - name: find
         run: |
-          find **/*.xml
+          find **/jacoco*.xml; true
 
       - name: find
         run: |
-          find . -name '*.xml'
+          find **/*.xml; true
 
       - name: Codacy
         run: |
