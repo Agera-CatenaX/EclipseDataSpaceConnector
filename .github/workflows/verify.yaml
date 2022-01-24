@@ -31,14 +31,10 @@ jobs:
         # checkstyle would also run as part of the `check` task
         run: ./gradlew clean check jacocoTestReport -x checkstyleMain -x checkstyleTest
 
-      - name: find
-        run: |
-          find . -name jacocoTestReport.xml ;  true
-
-      - name: find
-        run: |
-          find . -name jacocoTestReport.xml -printf '-r %p ';  true
-
+      - name: CodeCov
+        uses: codecov/codecov-action@v2
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
 
       - name: Set Coverage Report Paths
         id: coverage-paths
