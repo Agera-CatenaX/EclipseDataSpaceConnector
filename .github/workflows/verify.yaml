@@ -33,19 +33,15 @@ jobs:
 
       - name: find
         run: |
-          find . -name '*.xml'; true
+          find . -name jacocoTestReport.xml ;  true
 
       - name: find
         run: |
-          find **/jacoco*.xml; true
-
-      - name: find
-        run: |
-          find **/*.xml; true
+          find . -name jacocoTestReport.xml -printf '-r %p ';  true
 
       - name: Codacy
         run: |
-          bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Java $(find **/jacoco*.xml -printf '-r %p ')
+          bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Java $(find . -name jacocoTestReport.xml -printf '-r %p ')
         env:
           CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
