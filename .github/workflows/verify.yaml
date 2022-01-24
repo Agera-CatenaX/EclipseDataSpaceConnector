@@ -31,11 +31,23 @@ jobs:
         # checkstyle would also run as part of the `check` task
         run: ./gradlew clean check jacocoTestReport -x checkstyleMain -x checkstyleTest
 
-      - name: CodeCov
-        uses: codecov/codecov-action@v2
-        with:
-          token: ${{ secrets.CODECOV_TOKEN }} # not required for public repos
+      - name: find
+        run: |
+          find **/jacoco*.xml
 
+      - name: find
+        run: |
+          find **/*.xml
+
+      - name: find
+        run: |
+          find . -name '*.xml'
+
+      - name: Codacy
+        run: |
+          bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Java $(find **/jacoco*.xml -printf '-r %p ')
+        env:
+          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
 
   Sanity-Check:
     runs-on: ubuntu-latest
