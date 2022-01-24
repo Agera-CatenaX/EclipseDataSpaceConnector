@@ -39,11 +39,17 @@ jobs:
         run: |
           find . -name jacocoTestReport.xml -printf '-r %p ';  true
 
-      - name: Codacy
+
+      - name: Set Coverage Report Paths
+        id: coverage-paths
         run: |
-          bash <(curl -Ls https://coverage.codacy.com/get.sh) report -l Java $(find . -name jacocoTestReport.xml -printf '-r %p ')
-        env:
-          CODACY_PROJECT_TOKEN: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          echo -n "::set-output name=COVERAGE_REPORT_PATHS::"
+          find . -name jacocoTestReport.xml -printf '%p,'
+      - name: Publish Code Coverage Results
+        uses: codacy/codacy-coverage-reporter-action@v1
+        with:
+          project-token: ${{ secrets.CODACY_PROJECT_TOKEN }}
+          coverage-reports: ${{ steps.coverage-paths.outputs.COVERAGE_REPORT_PATHS }}
 
   Sanity-Check:
     runs-on: ubuntu-latest
