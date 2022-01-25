@@ -37,6 +37,8 @@ plugin {
 ```
 If SonarQube runs on default port then we don't have to specify other properties, otherwise 
 
+Run tests w code coverage and add project to running SonarQube:
+
 ```bash
 ./gradlew clean check jacocoTestReport     
 ./gradlew sonarqube
