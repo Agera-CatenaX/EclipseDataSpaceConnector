@@ -18,6 +18,7 @@ plugins {
     checkstyle
     id("com.rameshkp.openapi-merger-gradle-plugin") version "1.0.4"
     jacoco
+    id("org.sonarqube") version "3.3"
 }
 
 repositories {
@@ -145,6 +146,13 @@ allprojects {
         useJUnitPlatform()
     }
     tasks.withType<Test> {
+        finalizedBy("jacocoTestReport")
+        doLast {
+            println("View code coverage at:")
+            println("file://$buildDir/reports/jacoco/test/html/index.html")
+        }
+    }
+    tasks.withType<Test> {
         testLogging {
             events("failed")
             showStackTraces = true
@@ -169,8 +177,12 @@ allprojects {
     tasks.jacocoTestReport {
         reports {
             xml.required.set(true)
+            csv.required.set(false)
+            html.required.set(true)
         }
     }
+
+
 }
 
 openApiMerger {
