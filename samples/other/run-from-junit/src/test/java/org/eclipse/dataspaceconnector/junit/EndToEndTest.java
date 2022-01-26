@@ -14,8 +14,9 @@
 
 package org.eclipse.dataspaceconnector.junit;
 
+import org.eclipse.dataspaceconnector.core.security.NullVaultExtension;
+import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
-import org.eclipse.dataspaceconnector.security.NullVaultExtension;
 import org.eclipse.dataspaceconnector.spi.iam.ClaimToken;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
@@ -23,6 +24,7 @@ import org.eclipse.dataspaceconnector.spi.message.MessageContext;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcher;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.result.Result;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.system.VaultExtension;
@@ -37,7 +39,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 
-import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.CountDownLatch;
@@ -59,7 +60,7 @@ public class EndToEndTest {
 
         RemoteMessageDispatcher dispatcher = mock(RemoteMessageDispatcher.class);
 
-        when(dispatcher.protocol()).thenReturn("ids-rest");
+        when(dispatcher.protocol()).thenReturn(Protocols.IDS_MULTIPART);
 
         when(dispatcher.send(notNull(), isA(RemoteMessage.class), isA(MessageContext.class))).thenAnswer(i -> {
             latch.countDown();
@@ -72,7 +73,7 @@ public class EndToEndTest {
         var connectorId = "https://test";
 
         var entry = Asset.Builder.newInstance().id(artifactId).build();
-        var request = DataRequest.Builder.newInstance().protocol("ids-rest").assetId(entry.getId())
+        var request = DataRequest.Builder.newInstance().protocol(Protocols.IDS_MULTIPART).assetId(entry.getId())
                 .connectorId(connectorId).connectorAddress(connectorId).destinationType("S3").build();
 
         processManager.initiateConsumerRequest(request);
@@ -100,7 +101,7 @@ public class EndToEndTest {
         var connectorId = "https://test";
 
         var asset = Asset.Builder.newInstance().id(artifactId).build();
-        var request = DataRequest.Builder.newInstance().protocol("ids-rest").assetId(asset.getId())
+        var request = DataRequest.Builder.newInstance().protocol(Protocols.IDS_MULTIPART).assetId(asset.getId())
                 .connectorId(connectorId).connectorAddress(connectorId).destinationType("S3").id(UUID.randomUUID().toString()).build();
 
         processManager.initiateProviderRequest(request);
@@ -113,26 +114,24 @@ public class EndToEndTest {
     @BeforeEach
     void before(EdcExtension extension) {
         extension.registerSystemExtension(VaultExtension.class, new NullVaultExtension());
-        extension.registerSystemExtension(ServiceExtension.class, new ServiceExtension() {
-            @Override
-            public Set<String> provides() {
-                return Set.of(IdentityService.FEATURE);
-            }
+        extension.registerSystemExtension(ServiceExtension.class, new TestServiceExtension());
+    }
 
-            @Override
-            public void initialize(ServiceExtensionContext context) {
-                context.registerService(IdentityService.class, new IdentityService() {
-                    @Override
-                    public Result<TokenRepresentation> obtainClientCredentials(String scope) {
-                        return Result.success(TokenRepresentation.Builder.newInstance().token("test").build());
-                    }
+    @Provides(IdentityService.class)
+    private static class TestServiceExtension implements ServiceExtension {
+        @Override
+        public void initialize(ServiceExtensionContext context) {
+            context.registerService(IdentityService.class, new IdentityService() {
+                @Override
+                public Result<TokenRepresentation> obtainClientCredentials(String scope) {
+                    return Result.success(TokenRepresentation.Builder.newInstance().token("test").build());
+                }
 
-                    @Override
-                    public Result<ClaimToken> verifyJwtToken(String token, String audience) {
-                        return Result.success(ClaimToken.Builder.newInstance().build());
-                    }
-                });
-            }
-        });
+                @Override
+                public Result<ClaimToken> verifyJwtToken(String token) {
+                    return Result.success(ClaimToken.Builder.newInstance().build());
+                }
+            });
+        }
     }
 }

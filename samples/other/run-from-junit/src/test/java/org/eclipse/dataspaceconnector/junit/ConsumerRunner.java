@@ -14,8 +14,9 @@
 
 package org.eclipse.dataspaceconnector.junit;
 
+import org.eclipse.dataspaceconnector.aws.s3.core.S3BucketSchema;
+import org.eclipse.dataspaceconnector.ids.spi.Protocols;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
-import org.eclipse.dataspaceconnector.schema.s3.S3BucketSchema;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.iam.TokenRepresentation;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
@@ -26,9 +27,9 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessListener;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessObservable;
 import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.QueryRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.TransferProcess;
 import org.junit.jupiter.api.BeforeEach;
@@ -67,7 +68,7 @@ public class ConsumerRunner {
                 .connectorId(PROVIDER_CONNECTOR)
                 .queryLanguage("dataspaceconnector")
                 .query("select *")
-                .protocol("ids-rest").build();
+                .protocol(Protocols.IDS_MULTIPART).build();
 
         CompletableFuture<List<String>> future = cast(dispatcherRegistry.send(List.class, query, () -> null));
 
@@ -123,7 +124,7 @@ public class ConsumerRunner {
                 .connectorId(PROVIDER_CONNECTOR)
                 .queryLanguage("dataspaceconnector")
                 .query("select *")
-                .protocol("ids-rest").build();
+                .protocol(Protocols.IDS_MULTIPART).build();
 
         CompletableFuture<List<String>> future = cast(dispatcherRegistry.send(List.class, query, () -> null));
 
@@ -174,7 +175,7 @@ public class ConsumerRunner {
                 .connectorId(PROVIDER_CONNECTOR)
                 .queryLanguage("dataspaceconnector")
                 .query("select *")
-                .protocol("ids-rest").build();
+                .protocol(Protocols.IDS_MULTIPART).build();
 
         CompletableFuture<List<String>> future = cast(dispatcherRegistry.send(List.class, query, () -> null));
 
@@ -236,7 +237,7 @@ public class ConsumerRunner {
     private DataRequest createRequestAws(String id, Asset asset) {
         return DataRequest.Builder.newInstance()
                 .id(id)
-                .protocol("ids-rest")
+                .protocol(Protocols.IDS_MULTIPART)
                 .assetId(asset.getId())
                 .connectorId(PROVIDER_CONNECTOR)
                 .connectorAddress(PROVIDER_CONNECTOR)
@@ -246,7 +247,7 @@ public class ConsumerRunner {
     private DataRequest createRequestAzure(String id, Asset asset) {
         return DataRequest.Builder.newInstance()
                 .id(id)
-                .protocol("ids-rest")
+                .protocol(Protocols.IDS_MULTIPART)
                 .assetId(asset.getId())
                 .connectorId(PROVIDER_CONNECTOR)
                 .connectorAddress(PROVIDER_CONNECTOR)

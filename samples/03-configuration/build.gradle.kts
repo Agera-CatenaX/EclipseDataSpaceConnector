@@ -22,10 +22,10 @@ plugins {
 val rsApi: String by project
 
 dependencies {
-    implementation(project(":core"))
+    api(project(":core"))
+    api(project(":extensions:http"))
 
     implementation(project(":extensions:filesystem:configuration-fs"))
-
     implementation(project(":extensions:in-memory:transfer-store-memory"))
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:negotiation-store-memory"))
@@ -35,8 +35,7 @@ dependencies {
 }
 
 application {
-    @Suppress("DEPRECATION")
-    mainClassName = "org.eclipse.dataspaceconnector.system.runtime.BaseRuntime"
+    mainClass.set("org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

@@ -20,12 +20,11 @@ plugins {
 
 
 dependencies {
-    implementation(project(":core:bootstrap"))
+    implementation(project(":core"))
     implementation(project(":common:util"))
-    implementation(project(":core:protocol:web"))
 //    implementation(project(":extensions:azure:events"))
-    implementation(project(":extensions:iam:distributed-identity:registration-service"))
-    implementation(project(":extensions:iam:distributed-identity:registration-service-api"))
+    implementation(project(":extensions:iam:decentralized-identity:registration-service"))
+    implementation(project(":extensions:iam:decentralized-identity:registration-service-api"))
     implementation(project(":extensions:in-memory:did-document-store-inmem"))
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:5.5.2")
@@ -34,8 +33,7 @@ dependencies {
 }
 
 application {
-    @Suppress("DEPRECATION")
-    mainClassName = "org.eclipse.dataspaceconnector.did.RegistrationServiceRuntime"
+    mainClass.set("org.eclipse.dataspaceconnector.did.RegistrationServiceRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

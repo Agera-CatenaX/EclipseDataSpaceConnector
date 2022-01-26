@@ -25,12 +25,13 @@ dependencies {
     api(project(":data-protocols:ids:ids-spi"))
     api(project(":data-protocols:ids:ids-core"))
     api(project(":data-protocols:ids:ids-transform-v1"))
+    implementation(project(":extensions:http"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
     implementation("org.glassfish.jersey.media:jersey-media-multipart:${jerseyVersion}")
 
     testImplementation(testFixtures(project(":launchers:junit")))
-    testImplementation(project(":core:protocol:web"))
+    testImplementation(project(":core:base"))
     testImplementation(project(":data-protocols:ids:ids-api-multipart-endpoint-v1"))
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
 }

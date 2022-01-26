@@ -15,10 +15,10 @@
 package org.eclipse.dataspaceconnector.iam.daps;
 
 import org.eclipse.dataspaceconnector.common.annotations.IntegrationTest;
+import org.eclipse.dataspaceconnector.core.security.fs.FsCertificateResolver;
+import org.eclipse.dataspaceconnector.core.security.fs.FsPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.junit.launcher.EdcExtension;
 import org.eclipse.dataspaceconnector.junit.launcher.MockVault;
-import org.eclipse.dataspaceconnector.security.fs.FsCertificateResolver;
-import org.eclipse.dataspaceconnector.security.fs.FsPrivateKeyResolver;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
 import org.eclipse.dataspaceconnector.spi.security.CertificateResolver;
@@ -55,26 +55,6 @@ class DapsIntegrationTest {
             "edc.oauth.private.key.alias", CLIENT_KEYSTORE_KEY_ALIAS
     );
 
-    @BeforeEach
-    protected void before(EdcExtension extension) {
-        KeyStore clientKeystore = readKeystoreFromResources("keystore.p12", "PKCS12", CLIENT_KEYSTORE_PASSWORD);
-        extension.registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) configuration::get);
-        extension.registerServiceMock(Vault.class, new MockVault());
-        extension.registerServiceMock(PrivateKeyResolver.class, new FsPrivateKeyResolver(CLIENT_KEYSTORE_PASSWORD, clientKeystore));
-        extension.registerServiceMock(CertificateResolver.class, new FsCertificateResolver(clientKeystore));
-    }
-
-    @Test
-    void retrieveTokenAndValidate(IdentityService identityService) {
-        var tokenResult = identityService.obtainClientCredentials("idsc:IDS_CONNECTOR_ATTRIBUTES_ALL");
-
-        assertThat(tokenResult.succeeded()).isTrue();
-
-        var verificationResult = identityService.verifyJwtToken(tokenResult.getContent().getToken(), AUDIENCE_IDS_CONNECTORS_ALL);
-
-        assertThat(verificationResult.succeeded()).isTrue();
-    }
-
     private static KeyStore readKeystoreFromResources(String fileName, String type, String password) {
         var url = Thread.currentThread().getContextClassLoader().getResource(fileName);
         Objects.requireNonNull(url);
@@ -87,6 +67,26 @@ class DapsIntegrationTest {
         } catch (Exception e) {
             throw new EdcException("Failed to load keystore: " + e);
         }
+    }
+
+    @Test
+    void retrieveTokenAndValidate(IdentityService identityService) {
+        var tokenResult = identityService.obtainClientCredentials("idsc:IDS_CONNECTOR_ATTRIBUTES_ALL");
+
+        assertThat(tokenResult.succeeded()).isTrue();
+
+        var verificationResult = identityService.verifyJwtToken(tokenResult.getContent().getToken());
+
+        assertThat(verificationResult.succeeded()).isTrue();
+    }
+
+    @BeforeEach
+    protected void before(EdcExtension extension) {
+        KeyStore clientKeystore = readKeystoreFromResources("keystore.p12", "PKCS12", CLIENT_KEYSTORE_PASSWORD);
+        extension.registerSystemExtension(ConfigurationExtension.class, (ConfigurationExtension) configuration::get);
+        extension.registerServiceMock(Vault.class, new MockVault());
+        extension.registerServiceMock(PrivateKeyResolver.class, new FsPrivateKeyResolver(CLIENT_KEYSTORE_PASSWORD, clientKeystore));
+        extension.registerServiceMock(CertificateResolver.class, new FsCertificateResolver(clientKeystore));
     }
 
 }

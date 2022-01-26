@@ -24,7 +24,7 @@ val jupiterVersion: String by project
 dependencies {
     api(project(":spi"))
 
-    api(project(":core:bootstrap"))
+    api(project(":core:boot"))
 
     testFixturesImplementation(project(":common:util"))
 
