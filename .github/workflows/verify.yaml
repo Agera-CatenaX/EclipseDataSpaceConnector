@@ -39,8 +39,12 @@ jobs:
       - name: Set Coverage Report Paths
         id: coverage-paths
         run: |
-          echo -n "::set-output name=COVERAGE_REPORT_PATHS::"
-          find . -name jacocoTestReport.xml -size +300c -printf '%p,'
+          echo -n "::set-output name=COVERAGE_REPORT_PATHS::$(find . -name jacocoTestReport.xml -size +300c -printf '%p,')"
+
+      - name: Set Coverage Report Paths
+        id: display-coverage-paths
+        run: |
+            echo -n "${{ steps.coverage-paths.outputs.COVERAGE_REPORT_PATHS }}"
 
       - name: Add coverage to PR
         id: jacoco
