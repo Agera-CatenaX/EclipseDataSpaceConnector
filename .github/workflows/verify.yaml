@@ -50,7 +50,7 @@ jobs:
         id: jacoco
         uses: madrapps/jacoco-report@v1.2
         with:
-          paths: ${{ steps.coverage-paths.outputs.COVERAGE_REPORT_PATHS }}
+          paths: ${{ github.workspace }}/core/transfer/build/reports/jacoco/test/jacocoTestReport.xml,${{ github.workspace }}/core/policy/policy-evaluator/build/reports/jacoco/test/jacocoTestReport.xml
           token: ${{ secrets.GITHUB_TOKEN }}
           min-coverage-overall: 40
           min-coverage-changed-files: 60
