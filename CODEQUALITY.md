@@ -42,6 +42,36 @@ Checkstyle is set up to run explicitly in [Github Workflow](./.github/workflows/
 
 More information about Checktyle in EDC can be found in [the doc about the style guide](./styleguide.md).
 
+### Running Checkstyle with Codacy
+
+Checkstyle is available as a built-in tool in Codacy:
+
+![Checkstyle in Codacy](.attachments/checkstyle_codacy_feature.png)
+
+With this feature toggled Codacy scans the code and can apply the checks on the PRs. From the Codacy dashboard we can see the issues found by Checkstyle 
+with an explanation why it's an issue:
+
+![Checkstyle in Codacy](.attachments/checkstye_codacy_report.png)
+
+Codacy offers also an integration with Github Actions checks that can be applied on new PRs.
+
+It can be enabled from Codacy website -> Settings -> Integrations
+
+![Checkstyle in Codacy](.attachments/codacy_github_options.png)
+
+With that we can see the checks reports under the PRs in Github:
+
+![Checkstyle in Codacy](.attachments/codacy_github_check.png)
+
+Going into details we can see a link to the issues report on Codacy:
+
+![Checkstyle in Codacy](.attachments/codacy_github_details.png)
+
+
+
+
+
+
 ## PMD
 
 TBD
