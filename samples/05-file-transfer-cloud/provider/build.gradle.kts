@@ -24,7 +24,6 @@ val rsApi: String by project
 
 dependencies {
     implementation(project(":core"))
-    api(project(":extensions:azure:blobstorage:api"))
 
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
