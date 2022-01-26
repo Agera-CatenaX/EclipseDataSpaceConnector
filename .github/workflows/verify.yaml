@@ -39,7 +39,7 @@ jobs:
       - name: Set Coverage Report Paths
         id: coverage-paths
         run: |
-          echo -n "::set-output name=COVERAGE_REPORT_PATHS::$(find ~+ -name jacocoTestReport.xml -size +300c -printf '%p,' | sed 's/.$//)"
+          echo -n "::set-output name=COVERAGE_REPORT_PATHS::$(find ~+ -name jacocoTestReport.xml -size +300c -printf '%p,' | sed 's/.$//')"
 
       - name: Set Coverage Report Paths
         id: display-coverage-paths
