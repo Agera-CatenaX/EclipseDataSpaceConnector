@@ -30,7 +30,6 @@ public class ObservabilityApiExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext serviceExtensionContext) {
 
-
         webService.registerController(new ObservabilityApiController(healthCheckService));
 
         // contribute to the liveness probe
