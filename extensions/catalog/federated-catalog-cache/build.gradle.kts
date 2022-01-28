@@ -14,21 +14,24 @@
 
 plugins {
     `java-library`
+    id("io.swagger.core.v3.swagger-gradle-plugin")
 }
 
 val rsApi: String by project
 
 dependencies {
     api(project(":spi"))
-
     api(project(":extensions:catalog:federated-catalog-spi"))
+    implementation(project(":core:base"))
     implementation(project(":common:util"))
+    implementation(project(":extensions:http"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
     // required for integration test
     testImplementation(testFixtures(project(":launchers:junit")))
-    testImplementation(project(":core:protocol:web"))
+    testImplementation(project(":core:base"))
+    testImplementation(project(":data-protocols:ids:ids-spi"))
     testImplementation(project(":extensions:in-memory:fcc-node-directory-memory"))
     testImplementation(project(":extensions:in-memory:fcc-store-memory"))
 }

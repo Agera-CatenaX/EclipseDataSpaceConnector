@@ -19,20 +19,20 @@ val jerseyVersion: String by project
 
 plugins {
     `java-library`
+    id("io.swagger.core.v3.swagger-gradle-plugin")
 }
 
 dependencies {
     api(project(":spi"))
+    api(project(":common:util"))
+    api(project(":extensions:http"))
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
+    testImplementation(project(":core:"))
     testImplementation(project(":extensions:in-memory:assetindex-memory"))
-    testImplementation(project(":core:protocol:web"))
-    testImplementation(project(":core:transfer"))
-    testImplementation(project(":core:contract"))
     testImplementation(project(":extensions:in-memory:transfer-store-memory"))
     testImplementation(project(":extensions:in-memory:contractdefinition-store-memory"))
-    testImplementation(project(":extensions:in-memory:policy-registry-memory"))
     testImplementation(project(":extensions:in-memory:assetindex-memory"))
     testImplementation(project(":data-protocols:ids"))
     testImplementation(project(":extensions:iam:iam-mock"))
@@ -43,7 +43,6 @@ dependencies {
 
     testImplementation(project(":extensions:in-memory:negotiation-store-memory"))
 
-    implementation(project(":common:util"))
 }
 
 publishing {

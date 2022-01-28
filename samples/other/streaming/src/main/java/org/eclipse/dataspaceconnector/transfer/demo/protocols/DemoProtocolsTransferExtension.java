@@ -15,12 +15,14 @@
 package org.eclipse.dataspaceconnector.transfer.demo.protocols;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.eclipse.dataspaceconnector.extension.jetty.JettyService;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
+import org.eclipse.dataspaceconnector.spi.WebService;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.protocol.web.WebService;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Requires;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
@@ -45,9 +47,6 @@ import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.PubSubServerEnd
 import org.eclipse.dataspaceconnector.transfer.demo.protocols.ws.WebSocketFactory;
 import org.eclipse.dataspaceconnector.transfer.inline.core.InlineDataFlowController;
 import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
-import org.eclipse.dataspaceconnector.web.transport.JettyService;
-
-import java.util.Set;
 
 /**
  * An extension that demonstrates data transfers and supports three flow types:
@@ -57,6 +56,7 @@ import java.util.Set;
  * Integration testing
  * The JUnit test for this class demonstrates how to perform extension integration testing using and embedded runtime.
  */
+@Requires({WebService.class, JettyService.class})
 public class DemoProtocolsTransferExtension implements ServiceExtension {
     @EdcSetting
     private static final String WS_PUBSUB_ENDPOINT = "edc.demo.protocol.ws.pubsub";
@@ -71,11 +71,6 @@ public class DemoProtocolsTransferExtension implements ServiceExtension {
     PubSubHttpEndpoint httpEndpoint;
 
     private Monitor monitor;
-
-    @Override
-    public Set<String> provides() {
-        return Set.of("demo-protocols");
-    }
 
     @Override
     public void initialize(ServiceExtensionContext context) {

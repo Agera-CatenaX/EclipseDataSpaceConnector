@@ -43,6 +43,7 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreement;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.agreement.ContractAgreementRequest;
@@ -50,7 +51,6 @@ import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.Cont
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractRejection;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.metadata.MetadataRequest;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -72,16 +72,6 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
     private static final String CONNECTOR_ID = UUID.randomUUID().toString();
     private TransformerRegistry transformerRegistry;
     private IdsMultipartRemoteMessageDispatcher multipartDispatcher;
-
-    @Override
-    protected Map<String, String> getSystemProperties() {
-        return new HashMap<>() {
-            {
-                put("web.http.port", String.valueOf(getPort()));
-                put("edc.ids.id", "urn:connector:" + CONNECTOR_ID);
-            }
-        };
-    }
 
     @BeforeEach
     void init() {
@@ -135,7 +125,7 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
                 .protocol(Protocols.IDS_MULTIPART)
                 .contractId("1")
                 .assetId(asset.getId())
-                .dataDestination(DataAddress.Builder.newInstance().build())
+                .dataDestination(DataAddress.Builder.newInstance().type("test-type").build())
                 .build();
 
         var result = multipartDispatcher.send(MultipartRequestInProcessResponse.class, request, () -> null).get();
@@ -248,6 +238,17 @@ class MultipartDispatcherIntegrationTest extends AbstractMultipartDispatcherInte
 
         assertThat(result.getHeader()).isInstanceOf(MessageProcessedNotificationMessage.class);
         assertThat(result.getPayload()).isNull();
+    }
+
+    @Override
+    protected Map<String, String> getSystemProperties() {
+        return new HashMap<>() {
+            {
+                put("web.http.port", String.valueOf(getPort()));
+                put("edc.ids.id", "urn:connector:" + CONNECTOR_ID);
+                put("ids.webhook.address", "http://webhook");
+            }
+        };
     }
 
     private de.fraunhofer.iais.eis.ContractOffer getIdsContractOffer() {

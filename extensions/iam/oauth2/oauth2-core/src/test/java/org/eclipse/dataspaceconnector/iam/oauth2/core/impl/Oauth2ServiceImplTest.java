@@ -9,6 +9,7 @@
  *
  *  Contributors:
  *       Microsoft Corporation - initial API and implementation
+ *       Fraunhofer Institute for Software and Systems Engineering
  *
  */
 
@@ -36,7 +37,6 @@ import java.security.interfaces.RSAPublicKey;
 import java.time.Instant;
 import java.util.Date;
 import java.util.UUID;
-import java.util.function.Supplier;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.anyString;
@@ -52,67 +52,13 @@ class Oauth2ServiceImplTest {
     private static final String PROVIDER_AUDIENCE = "audience-test";
 
     private Oauth2ServiceImpl authService;
-    private Supplier<JWSSigner> jwsSignerSupplier;
-
-    @Test
-    void verifyNoAudienceToken() {
-        var jwt = createJwt(null, Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
-
-        var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
-
-        assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailureMessages()).isNotEmpty();
-    }
-
-    @Test
-    void verifyInvalidAudienceToken() {
-        var jwt = createJwt("different.audience", Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
-
-        var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
-
-        assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailureMessages()).isNotEmpty();
-    }
-
-    @Test
-    void verifyInvalidAttemptUseNotBeforeToken() {
-        var jwt = createJwt("test.audience", Date.from(Instant.now().plusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
-
-        var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
-
-        assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailureMessages()).isNotEmpty();
-    }
-
-    @Test
-    void verifyExpiredToken() {
-        var jwt = createJwt("test.audience", Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().minusSeconds(1000)));
-
-        var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
-
-        assertThat(result.succeeded()).isFalse();
-        assertThat(result.getFailureMessages()).isNotEmpty();
-    }
-
-    @Test
-    void verifyValidJwt() {
-        var jwt = createJwt("test.audience", Date.from(Instant.now().minusSeconds(1000)), new Date(System.currentTimeMillis() + 1000000));
-
-        var result = authService.verifyJwtToken(jwt.serialize(), "test.audience");
-
-        assertThat(result.succeeded()).isTrue();
-        assertThat(result.getContent().getClaims()).hasSize(3).containsKeys("aud", "nbf", "exp");
-    }
+    private JWSSigner jwsSigner;
 
     @BeforeEach
     void setUp() throws JOSEException {
-        RSAKey testKey = new RSAKeyGenerator(2048)
-                .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
-                .keyID(UUID.randomUUID().toString()) // give the key a unique ID
-                .generate();
+        RSAKey testKey = testKey();
 
-        var pk = testKey.toPrivateKey();
-        jwsSignerSupplier = () -> new RSASSASigner(pk);
+        jwsSigner = new RSASSASigner(testKey.toPrivateKey());
         PublicKeyResolver publicKeyResolverMock = mock(PublicKeyResolver.class);
         PrivateKeyResolver privateKeyResolverMock = mock(PrivateKeyResolver.class);
         CertificateResolver certificateResolverMock = mock(CertificateResolver.class);
@@ -128,7 +74,64 @@ class Oauth2ServiceImplTest {
                 .identityProviderKeyResolver(publicKeyResolverMock)
                 .build();
 
-        authService = new Oauth2ServiceImpl(configuration, jwsSignerSupplier, new OkHttpClient.Builder().build(), new JwtDecoratorRegistryImpl(), new TypeManager());
+        authService = new Oauth2ServiceImpl(configuration, jwsSigner, new OkHttpClient.Builder().build(), new JwtDecoratorRegistryImpl(), new TypeManager());
+    }
+
+    @Test
+    void verifyNoAudienceToken() {
+        var jwt = createJwt(null, Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
+
+        var result = authService.verifyJwtToken(jwt.serialize());
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailureMessages()).isNotEmpty();
+    }
+
+    @Test
+    void verifyInvalidAudienceToken() {
+        var jwt = createJwt("different.audience", Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
+
+        var result = authService.verifyJwtToken(jwt.serialize());
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailureMessages()).isNotEmpty();
+    }
+
+    @Test
+    void verifyInvalidAttemptUseNotBeforeToken() {
+        var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(Instant.now().plusSeconds(1000)), Date.from(Instant.now().plusSeconds(1000)));
+
+        var result = authService.verifyJwtToken(jwt.serialize());
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailureMessages()).isNotEmpty();
+    }
+
+    @Test
+    void verifyExpiredToken() {
+        var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(Instant.now().minusSeconds(1000)), Date.from(Instant.now().minusSeconds(1000)));
+
+        var result = authService.verifyJwtToken(jwt.serialize());
+
+        assertThat(result.succeeded()).isFalse();
+        assertThat(result.getFailureMessages()).isNotEmpty();
+    }
+
+    @Test
+    void verifyValidJwt() {
+        var jwt = createJwt(PROVIDER_AUDIENCE, Date.from(Instant.now().minusSeconds(1000)), new Date(System.currentTimeMillis() + 1000000));
+
+        var result = authService.verifyJwtToken(jwt.serialize());
+
+        assertThat(result.succeeded()).isTrue();
+        assertThat(result.getContent().getClaims()).hasSize(3).containsKeys("aud", "nbf", "exp");
+    }
+
+    private RSAKey testKey() throws JOSEException {
+        return new RSAKeyGenerator(2048)
+                .keyUse(KeyUse.SIGNATURE) // indicate the intended use of the key
+                .keyID(UUID.randomUUID().toString()) // give the key a unique ID
+                .generate();
     }
 
     private SignedJWT createJwt(String aud, Date nbf, Date exp) {
@@ -140,7 +143,7 @@ class Oauth2ServiceImplTest {
 
         try {
             SignedJWT jwt = new SignedJWT(header, claimsSet);
-            jwt.sign(jwsSignerSupplier.get());
+            jwt.sign(jwsSigner);
             return jwt;
         } catch (JOSEException e) {
             throw new AssertionError(e);

@@ -15,15 +15,18 @@ package org.eclipse.dataspaceconnector.ion;
 
 import org.eclipse.dataspaceconnector.iam.did.spi.resolution.DidResolverRegistry;
 import org.eclipse.dataspaceconnector.ion.spi.IonClient;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
 
-import java.util.Set;
-
+@Provides(IonClient.class)
 public class IonClientExtension implements ServiceExtension {
 
     private static final String ION_NODE_URL_SETTING = "edc:ion:node:url";
     private static final String DEFAULT_NODE_URL = "https://beta.discover.did.microsoft.com/1.0";
+    @Inject
+    private DidResolverRegistry resolverRegistry;
 
     @Override
     public String name() {
@@ -31,23 +34,12 @@ public class IonClientExtension implements ServiceExtension {
     }
 
     @Override
-    public Set<String> requires() {
-        return Set.of(DidResolverRegistry.FEATURE);
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of(IonClient.FEATURE);
-    }
-
-    @Override
     public void initialize(ServiceExtensionContext context) {
         String ionEndpoint = getIonEndpoint(context);
         context.getMonitor().info("Using ION Node for resolution " + ionEndpoint);
-        var client = new DefaultIonClient(ionEndpoint, context.getTypeManager().getMapper());
+        var client = new IonClientImpl(ionEndpoint, context.getTypeManager().getMapper());
         context.registerService(IonClient.class, client);
 
-        var resolverRegistry = context.getService(DidResolverRegistry.class);
         resolverRegistry.register(client);
     }
 

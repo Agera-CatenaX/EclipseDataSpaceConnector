@@ -20,8 +20,8 @@ import org.eclipse.dataspaceconnector.spi.asset.AssetIndex;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.Criterion;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
+import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.asset.Asset;
-import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataAddress;
 
 import java.util.Collections;
 import java.util.List;
@@ -49,17 +49,8 @@ public class InMemoryAssetLoader implements AssetIndex, DataAddressResolver, Ass
     }
 
     @Override
-    public Stream<Asset> queryAssets(List<Criterion> criteria) {
-        return queryAssets(AssetSelectorExpression.Builder.newInstance().criteria(criteria).build());
-    }
-
-    @Override
     public Stream<Asset> queryAssets(AssetSelectorExpression expression) {
         Objects.requireNonNull(expression, "AssetSelectorExpression can not be null!");
-        // do not return anything if expression is empty
-        if (expression.getCriteria().isEmpty()) {
-            return Stream.empty();
-        }
 
         // select everything ONLY if the special constant is used
         if (expression == AssetSelectorExpression.SELECT_ALL) {
@@ -81,6 +72,11 @@ public class InMemoryAssetLoader implements AssetIndex, DataAddressResolver, Ass
         } finally {
             lock.readLock().unlock();
         }
+    }
+
+    @Override
+    public Stream<Asset> queryAssets(List<Criterion> criteria) {
+        return queryAssets(AssetSelectorExpression.Builder.newInstance().criteria(criteria).build());
     }
 
     @Override

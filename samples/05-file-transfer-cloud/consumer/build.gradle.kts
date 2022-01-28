@@ -23,29 +23,24 @@ val jupiterVersion: String by project
 val rsApi: String by project
 
 dependencies {
-    implementation(project(":core:bootstrap"))
-    implementation(project(":core:transfer"))
-    implementation(project(":core:contract"))
-    implementation(project(":core:protocol:web"))
-    implementation(project(":core:policy:policy-evaluator"))
-    implementation(project(":core:policy:policy-engine"))
+    implementation(project(":core"))
 
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
-    implementation(project(":extensions:in-memory:policy-registry-memory"))
     implementation(project(":extensions:in-memory:contractdefinition-store-memory"))
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:negotiation-store-memory"))
+    implementation(project(":extensions:http"))
+
+    implementation(project(":extensions:aws:s3:s3-provision"))
 
     implementation(project(":extensions:iam:iam-mock"))
     implementation(project(":extensions:azure:vault"))
-    implementation(project(":extensions:aws:s3:provision"))
 
     implementation(project(":extensions:api:control"))
 
     implementation(project(":data-protocols:ids"))
-    implementation(project(":data-protocols:ids:ids-policy-mock"))
 
     implementation(project(":samples:05-file-transfer-cloud:api"))
 
@@ -54,8 +49,7 @@ dependencies {
 }
 
 application {
-    @Suppress("DEPRECATION")
-    mainClassName = "org.eclipse.dataspaceconnector.system.runtime.BaseRuntime"
+    mainClass.set("org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

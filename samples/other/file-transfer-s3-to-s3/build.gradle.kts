@@ -22,10 +22,10 @@ plugins {
 }
 
 dependencies {
-    api(project(":core:bootstrap"))
+    api(project(":core"))
     api(project(":spi"))
-    implementation(project(":extensions:aws:s3:provision"))
-    implementation(project(":extensions:aws:s3:s3-schema"))
+    implementation(project(":extensions:aws:s3:s3-provision"))
+    implementation(project(":extensions:aws:s3:s3-core"))
     implementation(project(":extensions:inline-data-transfer:inline-data-transfer-spi"))
     implementation(project(":extensions:inline-data-transfer:inline-data-transfer-core"))
 
@@ -38,20 +38,15 @@ dependencies {
 
     implementation("jakarta.ws.rs:jakarta.ws.rs-api:${rsApi}")
 
-    implementation(project(":core:protocol:web"))
-    implementation(project(":core:transfer"))
     implementation(project(":data-protocols:ids"))
-    implementation(project(":extensions:in-memory:policy-registry-memory"))
     implementation(project(":extensions:in-memory:assetindex-memory"))
     implementation(project(":extensions:in-memory:transfer-store-memory"))
     implementation(project(":extensions:iam:iam-mock"))
-    implementation(project(":data-protocols:ids:ids-policy-mock"))
     implementation(project(":extensions:filesystem:configuration-fs"))
 }
 
 application {
-    @Suppress("DEPRECATION")
-    mainClassName = "org.eclipse.dataspaceconnector.system.runtime.BaseRuntime"
+    mainClass.set("org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

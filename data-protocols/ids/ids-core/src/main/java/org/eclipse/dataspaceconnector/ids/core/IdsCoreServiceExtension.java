@@ -15,12 +15,7 @@
 package org.eclipse.dataspaceconnector.ids.core;
 
 import okhttp3.OkHttpClient;
-import org.eclipse.dataspaceconnector.ids.core.daps.DapsServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.descriptor.IdsDescriptorServiceImpl;
-import org.eclipse.dataspaceconnector.ids.core.message.DataRequestMessageSender;
-import org.eclipse.dataspaceconnector.ids.core.message.IdsRestRemoteMessageDispatcher;
-import org.eclipse.dataspaceconnector.ids.core.message.QueryMessageSender;
-import org.eclipse.dataspaceconnector.ids.core.policy.IdsPolicyServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.CatalogServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceImpl;
 import org.eclipse.dataspaceconnector.ids.core.service.ConnectorServiceSettings;
@@ -29,33 +24,29 @@ import org.eclipse.dataspaceconnector.ids.core.version.ConnectorVersionProviderI
 import org.eclipse.dataspaceconnector.ids.spi.IdsId;
 import org.eclipse.dataspaceconnector.ids.spi.IdsIdParser;
 import org.eclipse.dataspaceconnector.ids.spi.IdsType;
-import org.eclipse.dataspaceconnector.ids.spi.daps.DapsService;
 import org.eclipse.dataspaceconnector.ids.spi.descriptor.IdsDescriptorService;
-import org.eclipse.dataspaceconnector.ids.spi.policy.IdsPolicyService;
 import org.eclipse.dataspaceconnector.ids.spi.service.CatalogService;
 import org.eclipse.dataspaceconnector.ids.spi.service.ConnectorService;
 import org.eclipse.dataspaceconnector.ids.spi.transform.TransformerRegistry;
 import org.eclipse.dataspaceconnector.ids.spi.version.ConnectorVersionProvider;
 import org.eclipse.dataspaceconnector.spi.EdcException;
 import org.eclipse.dataspaceconnector.spi.EdcSetting;
-import org.eclipse.dataspaceconnector.spi.contract.negotiation.ContractNegotiationManager;
 import org.eclipse.dataspaceconnector.spi.contract.offer.ContractOfferService;
 import org.eclipse.dataspaceconnector.spi.iam.IdentityService;
-import org.eclipse.dataspaceconnector.spi.message.RemoteMessageDispatcherRegistry;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
-import org.eclipse.dataspaceconnector.spi.security.Vault;
+import org.eclipse.dataspaceconnector.spi.system.Inject;
+import org.eclipse.dataspaceconnector.spi.system.Provides;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtensionContext;
-import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
-import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Set;
 
 /**
  * Implements the IDS Controller REST API.
  */
+@Provides({ ConnectorVersionProvider.class, CatalogService.class, ConnectorService.class, IdsDescriptorService.class,
+        CatalogService.class, ConnectorService.class, TransformerRegistry.class })
 public class IdsCoreServiceExtension implements ServiceExtension {
 
     @EdcSetting
@@ -67,20 +58,16 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     private static final String ERROR_INVALID_SETTING = "IDS Settings: Invalid setting for '%s'. Was %s'.";
 
     private Monitor monitor;
+    @Inject
+    private ContractOfferService contractOfferService;
+    @Inject
+    private IdentityService identityService;
+    @Inject
+    private OkHttpClient okHttpClient;
 
     @Override
     public String name() {
         return "IDS Core";
-    }
-
-    @Override
-    public Set<String> provides() {
-        return Set.of("edc:ids:core");
-    }
-
-    @Override
-    public Set<String> requires() {
-        return Set.of(IdentityService.FEATURE, ContractNegotiationManager.FEATURE, "dataspaceconnector:http-client", "dataspaceconnector:transferprocessstore");
     }
 
     @Override
@@ -107,8 +94,6 @@ public class IdsCoreServiceExtension implements ServiceExtension {
             throw new EdcException(String.join(", ", settingErrors));
         }
 
-        ContractOfferService contractOfferService = serviceExtensionContext.getService(ContractOfferService.class);
-
         TransformerRegistry transformerRegistry = createTransformerRegistry();
         serviceExtensionContext.registerService(TransformerRegistry.class, transformerRegistry);
 
@@ -128,36 +113,6 @@ public class IdsCoreServiceExtension implements ServiceExtension {
     private void registerOther(ServiceExtensionContext context) {
         var descriptorService = new IdsDescriptorServiceImpl();
         context.registerService(IdsDescriptorService.class, descriptorService);
-
-        var identityService = context.getService(IdentityService.class);
-        var connectorId = context.getConnectorId();
-        var dapsService = new DapsServiceImpl(connectorId, identityService);
-        context.registerService(DapsService.class, dapsService);
-
-        var policyService = new IdsPolicyServiceImpl();
-        context.registerService(IdsPolicyService.class, policyService);
-
-        assembleIdsDispatcher(connectorId, context, identityService);
-    }
-
-    /**
-     * Assembles the IDS remote message dispatcher and its senders.
-     */
-    private void assembleIdsDispatcher(String connectorId, ServiceExtensionContext context, IdentityService identityService) {
-        var processManager = context.getService(TransferProcessManager.class);
-        var vault = context.getService(Vault.class);
-        var httpClient = context.getService(OkHttpClient.class);
-
-        var mapper = context.getTypeManager().getMapper();
-
-        var monitor = context.getMonitor();
-
-        var restDispatcher = new IdsRestRemoteMessageDispatcher();
-        restDispatcher.register(new QueryMessageSender(connectorId, identityService, httpClient, mapper, monitor));
-        restDispatcher.register(new DataRequestMessageSender(connectorId, identityService, vault, httpClient, mapper, monitor, processManager));
-
-        var registry = context.getService(RemoteMessageDispatcherRegistry.class);
-        registry.register(restDispatcher);
     }
 
     private TransformerRegistry createTransformerRegistry() {

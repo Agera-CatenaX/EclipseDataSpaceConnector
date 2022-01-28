@@ -21,12 +21,12 @@ plugins {
 val jupiterVersion: String by project
 
 dependencies {
-    implementation(project(":core:bootstrap"))
+    implementation(project(":core:boot"))
     implementation(project(":extensions:dataloading:dataloading-asset"))
     implementation(project(":extensions:dataloading:dataloading-contractdef"))
 
     // the following lines enable the CosmosDB-based AssetIndex
-    implementation(project(":extensions:azure:assetindex-cosmos"))
+    implementation(project(":extensions:azure:cosmos:assetindex-cosmos"))
     implementation(project(":extensions:filesystem:configuration-fs"))
     implementation(project(":extensions:azure:vault"))
 
@@ -35,7 +35,7 @@ dependencies {
     // implementation(project(":extensions:in-memory:assetindex-memory"))
 
     // the following line enables the Cosmos-DB based ContractDefinitionStore
-    implementation(project(":extensions:azure:contract-definition-store-cosmos"))
+    implementation(project(":extensions:azure:cosmos:contract-definition-store-cosmos"))
 
 
     // lightweight lib for CLI args
@@ -45,8 +45,7 @@ dependencies {
 }
 
 application {
-    @Suppress("DEPRECATION")
-    mainClassName = "org.eclipse.dataspaceconnector.dataloader.cli.DataLoaderRuntime"
+    mainClass.set("org.eclipse.dataspaceconnector.dataloader.cli.DataLoaderRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {
