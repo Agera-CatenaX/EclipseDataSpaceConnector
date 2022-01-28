@@ -8,6 +8,7 @@ service:
   type: ClusterIP
   port: 80
 ingress:
+  enabled: false
   # hostname: <host>
   className: nginx
   path: edc/(.*)
@@ -17,10 +18,6 @@ ingress:
     nginx.ingress.kubernetes.io/rewrite-target: /$1
     nginx.ingress.kubernetes.io/use-regex: "true"
 edc:
-  env:
-    # list of env
-    a: b
-  secrets:
-    # list of secrets
-    c: d
+  env: {}
+  envSecrets: {}
 

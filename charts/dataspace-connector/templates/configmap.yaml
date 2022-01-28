@@ -3,7 +3,6 @@ kind: ConfigMap
 metadata:
   name: {{ include "edc.fullname" . }}-envvars
 data:
-  x: ye
-#{{- range $envName, $value := .Values.edc.env }}
-#  {{ $envName | quote }}: value: {{ $value | quote }}
-#{{- end }}
+  {{- range $envName, $value := .Values.edc.env }}
+  {{ $envName | quote }}: {{ $value | quote }}
+  {{- end }}
