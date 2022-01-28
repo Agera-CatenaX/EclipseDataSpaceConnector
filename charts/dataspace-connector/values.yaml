@@ -9,14 +9,11 @@ service:
   port: 80
 ingress:
   enabled: false
-  # hostname: <host>
-  className: nginx
-  path: edc/(.*)
-  pathType: Prefix
-  scheme: http # It is used to set up ids.webhook.address of the connector.
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
-    nginx.ingress.kubernetes.io/use-regex: "true"
+  pathType: ImplementationSpecific
+  hostname: dataspace-connector.local
+  path: /
+  annotations: {}
+  ingressClassName: ""
 edc:
   env: {}
   envSecrets: {}
