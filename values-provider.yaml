@@ -14,4 +14,4 @@ ingress:
 edc:
   env:
     ids.webhook.address: http://algattikaks.northeurope.cloudapp.azure.com/provider
-    edc.samples.04.asset.path: /tmp
+    edc.samples.04.asset.path: /etc/hosts
