@@ -1,0 +1,17 @@
+image:
+  repository: algattikacr.azurecr.io/consumer
+  tag: latest
+  pullPolicy: Always
+ingress:
+  enabled: true
+  pathType: Prefix
+  hostname: algattikaks.northeurope.cloudapp.azure.com
+  path: /consumer/(.*)
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/use-regex: "true"
+  ingressClassName: nginx
+edc:
+  env:
+    edc.api.control.auth.apikey.value: password
+    ids.webhook.address: http://algattikaks.northeurope.cloudapp.azure.com/consumer
