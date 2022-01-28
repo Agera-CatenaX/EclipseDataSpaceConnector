@@ -13,9 +13,6 @@
 #
 
 FROM openjdk:11-jre-slim
-# CONNECTOR_NAME can be `consumer` or `provider`.
-ARG CONNECTOR_NAME=consumer
-
-COPY samples/04-file-transfer/$CONNECTOR_NAME/build/libs/$CONNECTOR_NAME.jar app.jar
-
-ENTRYPOINT java -Dids.webhook.address=${IDS_WEBHOOK_ADDRESS} -Dedc.api.control.auth.apikey.value=${CONTROL_AUTH_APIKEY} -jar app.jar
+ARG JAR
+COPY $JAR app.jar
+ENTRYPOINT java -jar app.jar

@@ -1,39 +1,40 @@
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ .Release.Name }}-edc
+  name: {{ include "edc.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ .Release.Name }}-edc
+    app.kubernetes.io/name: {{ include "edc.name" . }}
+    helm.sh/chart: {{ include "edc.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
 spec:
-  replicas: 1
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
-      app.kubernetes.io/name: {{ .Release.Name }}-edc
-  serviceName: {{ .Release.Name }}-edc
+      app.kubernetes.io/name: {{ include "edc.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  serviceName: {{ include "edc.fullname" . }}
   template:
     metadata:
       labels:
-        app.kubernetes.io/name: {{ .Release.Name }}-edc
+        app.kubernetes.io/name: {{ include "edc.name" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
     spec:
       containers:
-        - name: {{ .Release.Name }}-edc
+        - name: {{ .Chart.Name }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
           imagePullPolicy: "{{ .Values.image.pullPolicy }}"
           ports:
             - containerPort: {{ .Values.container.port }}
               name: http
 
-          env:
-{{- range $envName, $value := .Values.edc.env }}
-            - name: "{{ $envName }}"
-              value: "{{ $value }}"
-{{- end }}
           envFrom:
+            - configMapRef:
+                name: {{ include "edc.fullname" . }}-envvars
             - secretRef:
-                name: {{ .Release.Name }}-connector-secret
+                name: {{ include "edc.fullname" . }}-envvars
 
           readinessProbe:
-            initialDelaySeconds: 1
             httpGet:
               port: http
               path: /api/check/readiness

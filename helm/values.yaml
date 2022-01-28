@@ -1,0 +1,26 @@
+image:
+  # repository: <container-registry-repository>
+  # tag: <image-tag>
+  pullPolicy: Always
+container:
+  port: 8181
+service:
+  type: ClusterIP
+  port: 80
+ingress:
+  # hostname: <host>
+  className: nginx
+  path: edc/(.*)
+  pathType: Prefix
+  scheme: http # It is used to set up ids.webhook.address of the connector.
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/use-regex: "true"
+edc:
+  env:
+    # list of env
+    a: b
+  secrets:
+    # list of secrets
+    c: d
+
