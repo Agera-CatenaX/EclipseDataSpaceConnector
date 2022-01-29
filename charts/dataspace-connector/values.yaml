@@ -1,7 +1,7 @@
 image:
   # repository: <container-registry-repository>
   # tag: <image-tag>
-  pullPolicy: Always
+  pullPolicy: IfNotPresent
 container:
   port: 8181
 service:

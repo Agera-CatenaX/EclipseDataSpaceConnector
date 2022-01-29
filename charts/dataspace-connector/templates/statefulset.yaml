@@ -5,8 +5,8 @@ metadata:
   labels:
     app.kubernetes.io/name: {{ include "edc.name" . }}
     helm.sh/chart: {{ include "edc.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
     app.kubernetes.io/managed-by: {{ .Release.Service }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
