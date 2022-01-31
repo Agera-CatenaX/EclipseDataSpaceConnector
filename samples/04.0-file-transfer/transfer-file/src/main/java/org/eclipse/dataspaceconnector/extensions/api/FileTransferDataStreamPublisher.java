@@ -15,6 +15,7 @@ import java.nio.file.StandardCopyOption;
 public class FileTransferDataStreamPublisher implements DataStreamPublisher {
     private final Monitor monitor;
     private final DataAddressResolver dataAddressResolver;
+    private String foo;
 
     public FileTransferDataStreamPublisher(Monitor monitor, DataAddressResolver dataAddressResolver) {
         this.monitor = monitor;
@@ -32,6 +33,7 @@ public class FileTransferDataStreamPublisher implements DataStreamPublisher {
 
     @Override
     public Result<Void> notifyPublisher(DataRequest dataRequest) {
+        var foo = foo(dataRequest);
         var source = dataAddressResolver.resolveForAsset(dataRequest.getAssetId());
         var destination = dataRequest.getDataDestination();
 
@@ -67,5 +69,9 @@ public class FileTransferDataStreamPublisher implements DataStreamPublisher {
             return Result.failure(message);
         }
         return Result.success();
+    }
+
+    public int foo(DataRequest dataRequest) {
+        return Integer.parseInt(dataRequest.getAssetId());
     }
 }
