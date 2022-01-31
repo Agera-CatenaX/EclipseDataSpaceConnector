@@ -33,6 +33,9 @@ public class FileTransferDataStreamPublisher implements DataStreamPublisher {
     @Override
     public Result<Void> notifyPublisher(DataRequest dataRequest) {
         var source = dataAddressResolver.resolveForAsset(dataRequest.getAssetId());
+        if (dataRequest.getDataDestination() == null) {
+            return Result.failure("Data dest doesn't exist.");
+        }
         var destination = dataRequest.getDataDestination();
 
         // verify source path

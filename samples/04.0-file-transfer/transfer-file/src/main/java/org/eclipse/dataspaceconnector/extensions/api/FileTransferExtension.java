@@ -21,6 +21,7 @@ import org.eclipse.dataspaceconnector.policy.model.Policy;
 import org.eclipse.dataspaceconnector.spi.asset.AssetSelectorExpression;
 import org.eclipse.dataspaceconnector.spi.asset.DataAddressResolver;
 import org.eclipse.dataspaceconnector.spi.contract.offer.store.ContractDefinitionStore;
+import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.system.Inject;
 import org.eclipse.dataspaceconnector.spi.system.ServiceExtension;
@@ -53,18 +54,20 @@ public class FileTransferExtension implements ServiceExtension {
     @Override
     public void initialize(ServiceExtensionContext context) {
         var vault = context.getService(Vault.class);
-        dataOperatorRegistry.registerStreamPublisher(new FileTransferDataStreamPublisher(context.getMonitor(), dataAddressResolver));
+        var monitor = context.getMonitor();
+        dataOperatorRegistry.registerStreamPublisher(new FileTransferDataStreamPublisher(monitor, dataAddressResolver));
 
-        DataFlowController dataFlowController = new InlineDataFlowController(vault, context.getMonitor(), dataOperatorRegistry, dataAddressResolver);
+        DataFlowController dataFlowController = new InlineDataFlowController(vault, monitor, dataOperatorRegistry, dataAddressResolver);
         dataFlowMgr.register(dataFlowController);
 
         var policy = createPolicy();
 
         registerDataEntries(context);
-        registerContractDefinition(context, policy);
+        registerContractDefinition(policy);
 
-        context.getMonitor().info("File Transfer Extension initialized!");
+        monitor.info("File Transfer Extension initialized!");
     }
+
 
     private Policy createPolicy() {
 
@@ -95,7 +98,7 @@ public class FileTransferExtension implements ServiceExtension {
         loader.accept(asset, dataAddress);
     }
 
-    private void registerContractDefinition(ServiceExtensionContext context, Policy policy) {
+    private void registerContractDefinition(Policy policy) {
 
         ContractDefinition contractDefinition = ContractDefinition.Builder.newInstance()
                 .id("1")
