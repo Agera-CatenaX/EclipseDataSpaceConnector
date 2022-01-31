@@ -24,6 +24,7 @@ public class ExponentialWaitStrategyTest {
     @Test
     void verifyBackoff() {
         ExponentialWaitStrategy strategy = new ExponentialWaitStrategy(5000);
+        strategy.success();
 
         assertEquals(5000, strategy.retryInMillis());
         assertEquals(10000, strategy.retryInMillis());
