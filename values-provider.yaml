@@ -4,9 +4,11 @@ image:
   pullPolicy: Always
 ingress:
   enabled: true
-  pathType: Prefix
-  hostname: algattikaks.northeurope.cloudapp.azure.com
-  path: /provider/(.*)
+  hosts:
+    - host: algattikaks.northeurope.cloudapp.azure.com
+      paths:
+      - path: /provider/(.*)
+        pathType: Prefix
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /$1
     nginx.ingress.kubernetes.io/use-regex: "true"

@@ -1,19 +1,15 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "edc.fullname" . }}
+  name: {{ include "dataspace-connector.fullname" . }}
   labels:
-    app.kubernetes.io/name: {{ include "edc.name" . }}
-    helm.sh/chart: {{ include "edc.chart" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
-    app.kubernetes.io/managed-by: {{ .Release.Service }}
+    {{- include "dataspace-connector.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
     - port: {{ .Values.service.port }}
-      targetPort: {{ .Values.container.port }}
+      targetPort: {{ .Values.edc.port }}
       protocol: TCP
       name: http
   selector:
-    app.kubernetes.io/name: {{ include "edc.name" . }}
-    app.kubernetes.io/instance: {{ .Release.Name }}
+    {{- include "dataspace-connector.selectorLabels" . | nindent 4 }}
