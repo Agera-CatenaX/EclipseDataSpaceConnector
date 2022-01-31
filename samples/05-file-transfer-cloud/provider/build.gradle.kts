@@ -35,7 +35,6 @@ dependencies {
     implementation(project(":extensions:http"))
 
     implementation(project(":data-protocols:ids"))
-    implementation(project(":data-protocols:ids:ids-policy-mock"))
 
     implementation(project(":samples:05-file-transfer-cloud:transfer-file"))
     implementation(project(":samples:05-file-transfer-cloud:data-seeder"))
@@ -44,7 +43,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("org.eclipse.dataspaceconnector.core.system.runtime.BaseRuntime")
+    mainClass.set("org.eclipse.dataspaceconnector.boot.system.runtime.BaseRuntime")
 }
 
 tasks.withType<com.github.jengelman.gradle.plugins.shadow.tasks.ShadowJar> {

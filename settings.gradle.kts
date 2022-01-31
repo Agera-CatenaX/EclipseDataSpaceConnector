@@ -25,12 +25,12 @@ include(":core:policy:policy-evaluator")
 include(":core:transfer")
 include(":core:contract")
 include(":core:base")
+include(":core:boot")
 
 // modules that provide implementations for data ingress/egress
 include(":data-protocols:ids:ids-api-multipart-endpoint-v1")
 include(":data-protocols:ids:ids-api-multipart-dispatcher-v1")
 include(":data-protocols:ids:ids-core")
-include(":data-protocols:ids:ids-policy-mock")
 include(":data-protocols:ids:ids-spi")
 include(":data-protocols:ids:ids-transform-v1")
 
@@ -41,14 +41,13 @@ include(":extensions:ion:ion-client")
 include(":extensions:aws")
 include(":extensions:api:control")
 include(":extensions:api:observability")
-include(":extensions:aws:s3:provision")
-include(":extensions:aws:s3:s3-schema")
+include(":extensions:aws:s3:s3-core")
+include(":extensions:aws:s3:s3-provision")
 include(":extensions:aws:s3:s3-data-operator")
 include(":extensions:aws:aws-test")
 include(":extensions:azure:blobstorage")
-include(":extensions:azure:blobstorage:blob-schema")
-include(":extensions:azure:blobstorage:provision")
-include(":extensions:azure:blobstorage:api")
+include(":extensions:azure:blobstorage:blob-core")
+include(":extensions:azure:blobstorage:blob-provision")
 include(":extensions:azure:blobstorage:blob-data-operator")
 include(":extensions:azure:events")
 include(":extensions:azure:events-config")
@@ -98,6 +97,10 @@ include(":extensions:http:jersey")
 include(":extensions:http:jetty")
 include(":extensions:inline-data-transfer:inline-data-transfer-core")
 include(":extensions:inline-data-transfer:inline-data-transfer-spi")
+include(":extensions:transaction")
+include(":extensions:transaction:transaction-spi")
+include(":extensions:transaction:transaction-local")
+include(":extensions:transaction:transaction-datasource-spi")
 
 // modules for launchers, i.e. runnable compositions of the app
 include(":launchers:basic")
@@ -119,23 +122,36 @@ include(":samples:other:streaming")
 include(":samples:other:custom-runtime")
 
 
-
 // extension points for a connector
 include(":spi")
 include(":spi:core-spi")
 include(":spi:transfer-spi")
 include(":spi:contract-spi")
 include(":spi:catalog-spi")
+include(":spi:web-spi")
+
+//include(":openapi")
 
 // numbered samples for the onboarding experience
 include(":samples:01-basic-connector")
 include(":samples:02-health-endpoint")
 include(":samples:03-configuration")
 
-include(":samples:04-file-transfer:consumer")
-include(":samples:04-file-transfer:provider")
-include(":samples:04-file-transfer:api")
-include(":samples:04-file-transfer:transfer-file")
+include(":samples:04.0-file-transfer:consumer")
+include(":samples:04.0-file-transfer:provider")
+include(":samples:04.0-file-transfer:api")
+include(":samples:04.0-file-transfer:transfer-file")
+
+include(":samples:04.1-file-transfer-listener:consumer")
+include(":samples:04.1-file-transfer-listener:listener")
+include(":samples:04.1-file-transfer-listener:transfer-file")
+include(":samples:04.1-file-transfer-listener:api")
+
+include(":samples:04.2-modify-transferprocess:consumer")
+include(":samples:04.2-modify-transferprocess:watchdog")
+include(":samples:04.2-modify-transferprocess:simulator")
+
+include(":samples:04.3-open-telemetry:consumer")
 
 include(":samples:05-file-transfer-cloud:consumer")
 include(":samples:05-file-transfer-cloud:provider")
@@ -143,7 +159,3 @@ include(":samples:05-file-transfer-cloud:api")
 include(":samples:05-file-transfer-cloud:data-seeder")
 include(":samples:05-file-transfer-cloud:transfer-file")
 
-include(":samples:04.1-file-transfer-listener:consumer")
-include(":samples:04.1-file-transfer-listener:listener")
-
-include(":samples:04.3-open-telemetry:consumer")

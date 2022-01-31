@@ -20,11 +20,12 @@ import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Context provided to extensions when they are initialized.
  */
-public interface ServiceExtensionContext {
+public interface ServiceExtensionContext extends SettingResolver {
 
     /**
      * Fetches the unique ID of the connector. If the {@code dataspaceconnector.connector.name} config value has been set, that value is returned; otherwise  a random
@@ -41,11 +42,6 @@ public interface ServiceExtensionContext {
      * Returns the type manager.
      */
     TypeManager getTypeManager();
-
-    /**
-     * Returns the configuration value, or the default value if not found.
-     */
-    String getSetting(String setting, String defaultValue);
 
     /**
      * Returns true if the service type is registered.

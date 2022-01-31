@@ -14,9 +14,9 @@
 
 package org.eclipse.dataspaceconnector.spi.transfer.flow;
 
+import org.eclipse.dataspaceconnector.spi.response.ResponseFailure;
+import org.eclipse.dataspaceconnector.spi.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.result.AbstractResult;
-import org.eclipse.dataspaceconnector.spi.transfer.ResponseFailure;
-import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 
 import java.util.List;
 
@@ -31,14 +31,6 @@ public class DataFlowInitiateResult extends AbstractResult<String, ResponseFailu
 
     public static DataFlowInitiateResult failure(ResponseStatus status, String error) {
         return new DataFlowInitiateResult(null, new ResponseFailure(status, List.of(error)));
-    }
-
-    public DataFlowInitiateResult(String content) {
-        super(content, null);
-    }
-
-    public DataFlowInitiateResult(ResponseStatus status, String error) {
-        super(null, new ResponseFailure(status, List.of(error)));
     }
 
     private DataFlowInitiateResult(String content, ResponseFailure failure) {
