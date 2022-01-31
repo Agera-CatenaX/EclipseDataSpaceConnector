@@ -19,14 +19,14 @@ Have a look at the environment variables. We provide the [Jaeger exporter env va
 Let's run the consumer, the provider, and Jaeger:
 
 ```bash
-./gradlew samples:04.3-open-telemetry:consumer:build samples:04-file-transfer:provider:build
+./gradlew samples:04.0-file-transfer:consumer:build samples:04.0-file-transfer:provider:build
 docker-compose -f samples/04.3-open-telemetry/docker-compose.yaml up
 ```
 
 Once the consumer and provider are up, we can start a contract negotiation:
 
 ```bash
-curl -X POST -H "Content-Type: application/json" -d @samples/04-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://provider:8181/api/ids/multipart"
+curl -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/contractoffer.json "http://localhost:9191/api/negotiation?connectorAddress=http://provider:8181/api/ids/multipart"
 ```
 
 The contract negotiation causes an HTTP request sent from the consumer to the provider connector, followed by another message from the provider to the consumer connector.
