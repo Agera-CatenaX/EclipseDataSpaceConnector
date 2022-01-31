@@ -37,3 +37,24 @@ A trace represents an event and is composed of spans.
 If you click on one trace, you can see more details about the spans composing the trace.
 
 Okhttp and jetty are part the [libraries and frameworks](https://github.com/open-telemetry/opentelemetry-java-instrumentation/tree/main/instrumentation) that open telemetry can capture telemetry from. We can observe spans related to okhttp and jetty as EDC uses both. Look at the `otel.library.name` tag of the different spans.
+
+## Use application insight instead of Jaeger
+
+If you want to use application insight instead of Jaeger, you can replace the open-telemetry java agent by the [applicationinsights agent](https://docs.microsoft.com/en-us/azure/azure-monitor/app/java-in-process-agent#download-the-jar-file). Download it and put it in the root folder.
+You need to specify the APPLICATIONINSIGHTS_CONNECTION_STRING and APPLICATIONINSIGHTS_ROLE_NAME env variables.
+For example, the consumer would become:
+
+```yaml
+  consumer:
+    image: openjdk:11-jre-slim-buster
+    environment:
+      APPLICATIONINSIGHTS_CONNECTION_STRING: <your-connection-string>
+      APPLICATIONINSIGHTS_ROLE_NAME: consumer
+      edc.api.control.auth.apikey.value: password
+      ids.webhook.address: http://consumer:8181
+    volumes:
+      - ../../:/app
+    ports:
+      - 9191:8181
+    entrypoint: java -javaagent:/app/applicationinsights-agent-3.2.4.jar -jar /app/samples/04-file-transfer/consumer/build/libs/consumer.jar
+```
