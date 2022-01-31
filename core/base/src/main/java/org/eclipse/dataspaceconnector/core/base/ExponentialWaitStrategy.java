@@ -21,7 +21,7 @@ import org.eclipse.dataspaceconnector.spi.transfer.TransferWaitStrategy;
 public class ExponentialWaitStrategy implements TransferWaitStrategy, NegotiationWaitStrategy {
 
     private final long successWaitPeriodMillis;
-    private int errorCount = 0;
+    private int errorCount = 1;
 
 
     public ExponentialWaitStrategy(long successWaitPeriodMillis) {
