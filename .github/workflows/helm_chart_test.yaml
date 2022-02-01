@@ -22,3 +22,4 @@ jobs:
             ${{ runner.os }}-gradle-
       - name: Build image
         run: ./gradlew --build-cache samples:04.0-file-transfer:consumer:shadowJar samples:04.0-file-transfer:provider:shadowJar
+
