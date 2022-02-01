@@ -1,0 +1,32 @@
+name: Helm chart test
+on:
+  push:
+    branches:
+      - main
+      - 'spike/432-helm-chart-v4'
+
+jobs:
+  deploy_to_minikube:
+    runs-on: ubuntu-latest
+    name: Test helm chart release in minikube.
+    steps:
+      - uses: actions/checkout@v2
+      - name: Cache packages
+        uses: actions/cache@v2
+        with:
+          path: |
+            ~/.gradle/caches
+            ~/.gradle/wrapper
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          restore-keys: |
+            ${{ runner.os }}-gradle-
+      - name: Start minikube
+        uses: medyagh/setup-minikube@master
+      - name: Build image
+        run: ./gradlew --build-cache samples:04.0-file-transfer:consumer:shadowJar samples:04.0-file-transfer:provider:shadowJar
+      - name: Test
+
+      - name: Test
+        run: |
+          eval $(minikube -p minikube docker-env)
+          samples/04.0-file-transfer/system-tests/kubernetes-test.sh
