@@ -17,7 +17,7 @@ jobs:
           path: |
             ~/.gradle/caches
             ~/.gradle/wrapper
-          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
+          key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
       - name: Start minikube
@@ -29,7 +29,7 @@ jobs:
           eval $(minikube -p minikube docker-env)
           samples/04.0-file-transfer/system-tests/kubernetes-test.sh
 
-      - name: Archive Test Results
+      - name: Kubernetes logs
         if: always()
         run: |
           set -x
