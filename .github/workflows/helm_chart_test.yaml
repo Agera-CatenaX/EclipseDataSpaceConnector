@@ -28,3 +28,11 @@ jobs:
         run: |
           eval $(minikube -p minikube docker-env)
           samples/04.0-file-transfer/system-tests/kubernetes-test.sh
+
+      - name: Archive Test Results
+        if: always()
+        run: |
+          set -x
+          kubectl get pods
+          kubectl logs deployment/provider-dataspace-connector --tail=200
+          kubectl logs deployment/consumer-dataspace-connector --tail=200
