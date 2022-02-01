@@ -20,6 +20,19 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+      - name: Start minikube
+        uses: medyagh/setup-minikube@master
       - name: Build image
         run: ./gradlew --build-cache samples:04.0-file-transfer:consumer:shadowJar samples:04.0-file-transfer:provider:shadowJar
+      - name: Test
+        run: |
+          eval $(minikube -p minikube docker-env)
+          samples/04.0-file-transfer/system-tests/kubernetes-test.sh
 
+      - name: Kubernetes logs
+        if: always()
+        run: |
+          set -x
+          kubectl get pods
+          kubectl logs deployment/provider-dataspace-connector --tail=200
+          kubectl logs deployment/consumer-dataspace-connector --tail=200
