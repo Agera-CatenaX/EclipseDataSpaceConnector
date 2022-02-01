@@ -6,6 +6,7 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.inline.spi.DataStreamPublisher;
 import org.eclipse.dataspaceconnector.transfer.inline.spi.StreamContext;
+import org.jetbrains.annotations.NotNull;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,11 +34,14 @@ public class FileTransferDataStreamPublisher implements DataStreamPublisher {
     @Override
     public Result<Void> notifyPublisher(DataRequest dataRequest) {
         var source = dataAddressResolver.resolveForAsset(dataRequest.getAssetId());
+        if (dataRequest.getDataDestination() == null) {
+            return Result.failure("Data dest doesn't exist.");
+        }
         var destination = dataRequest.getDataDestination();
 
         // verify source path
         String sourceFileName = source.getProperty("filename");
-        var sourcePath = Path.of(source.getProperty("path"), sourceFileName);
+        var sourcePath = getPath(sourceFileName, source.getProperty("path"));
         if (!sourcePath.toFile().exists()) {
             return Result.failure("Source file " + sourcePath + " does not exist!");
         }
@@ -55,7 +59,7 @@ public class FileTransferDataStreamPublisher implements DataStreamPublisher {
                 return Result.failure(message);
             }
         } else if (destinationPath.toFile().isDirectory()) {
-            destinationPath = Path.of(destinationPath.toString(), sourceFileName);
+            destinationPath = getPath(sourceFileName, destinationPath.toString());
         }
 
         try {
@@ -68,4 +72,10 @@ public class FileTransferDataStreamPublisher implements DataStreamPublisher {
         }
         return Result.success();
     }
+
+    @NotNull
+    private Path getPath(String sourceFileName, String s) {
+        return Path.of(s, sourceFileName);
+    }
+
 }
