@@ -1,20 +1,11 @@
 image:
-  repository: algattikacr.azurecr.io/consumer
+  repository: consumer
   tag: latest
-  pullPolicy: Always
-ingress:
-  enabled: true
-  hosts:
-    - host: algattikaks.northeurope.cloudapp.azure.com
-      paths:
-      - path: /consumer/(.*)
-        pathType: Prefix
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
-    nginx.ingress.kubernetes.io/use-regex: "true"
-  ingressClassName: nginx
+service:
+  type: NodePort
+  port: 8181
 edc:
   env:
-    ids.webhook.address: http://algattikaks.northeurope.cloudapp.azure.com/consumer
+    ids.webhook.address: http://consumer-dataspace-connector:8181
   envSecrets:
     edc.api.control.auth.apikey.value: password

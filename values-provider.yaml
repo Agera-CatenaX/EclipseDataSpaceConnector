@@ -1,19 +1,7 @@
 image:
-  repository: algattikacr.azurecr.io/provider
+  repository: provider
   tag: latest
-  pullPolicy: Always
-ingress:
-  enabled: true
-  hosts:
-    - host: algattikaks.northeurope.cloudapp.azure.com
-      paths:
-      - path: /provider/(.*)
-        pathType: Prefix
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /$1
-    nginx.ingress.kubernetes.io/use-regex: "true"
-  ingressClassName: nginx
 edc:
   env:
-    ids.webhook.address: http://algattikaks.northeurope.cloudapp.azure.com/provider
+    ids.webhook.address: http://provider-dataspace-connector
     edc.samples.04.asset.path: /etc/hosts
