@@ -15,7 +15,7 @@ for s in consumer provider; do
 done
 
 for s in consumer provider; do
-  kubectl wait --for=condition=available deployment $s-dataspace-connector --timeout=120s
+  kubectl wait --for=condition=available deployment $s-dataspace-connector --timeout=240s
 done
 
 nodeIP=$(kubectl get nodes --namespace default -o jsonpath="{.items[0].status.addresses[0].address}")
