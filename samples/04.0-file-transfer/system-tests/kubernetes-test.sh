@@ -6,11 +6,13 @@ set -euxo pipefail
 # eval $(minikube docker-env)
 # samples/04.0-file-transfer/system-tests/kubernetes-test.sh
 
+dir=$(dirname $0)
+
 
 for s in consumer provider; do
   docker build -t $s --build-arg JAR=samples/04.0-file-transfer/$s/build/libs/$s.jar -f launchers/generic/Dockerfile .
   helm delete $s || true
-  helm install -f values-$s.yaml $s charts/dataspace-connector
+  helm install -f $dir/values-$s.yaml $s charts/dataspace-connector
 done
 
 for s in consumer provider; do
