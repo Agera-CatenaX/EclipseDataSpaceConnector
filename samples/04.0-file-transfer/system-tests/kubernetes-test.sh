@@ -11,8 +11,7 @@ dir=$(dirname $0)
 
 for s in consumer provider; do
   docker build -t $s --build-arg JAR=samples/04.0-file-transfer/$s/build/libs/$s.jar -f launchers/generic/Dockerfile .
-  helm delete $s || true
-  helm install -f $dir/values-$s.yaml $s charts/dataspace-connector
+  helm upgrade --install -f $dir/values-$s.yaml $s charts/dataspace-connector
 done
 
 for s in consumer provider; do
