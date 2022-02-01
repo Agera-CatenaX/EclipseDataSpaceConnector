@@ -11,6 +11,7 @@ jobs:
     name: Test helm chart release in minikube.
     steps:
       - uses: actions/checkout@v2
+
       - name: Cache packages
         uses: actions/cache@v2
         with:
@@ -20,10 +21,13 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
+
       - name: Start minikube
         uses: medyagh/setup-minikube@master
+
       - name: Build image
         run: ./gradlew --build-cache samples:04.0-file-transfer:consumer:shadowJar samples:04.0-file-transfer:provider:shadowJar
+
       - name: Test
         run: |
           eval $(minikube -p minikube docker-env)

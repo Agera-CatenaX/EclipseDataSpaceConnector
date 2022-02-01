@@ -15,7 +15,7 @@ for s in consumer provider; do
 done
 
 for s in consumer provider; do
-  kubectl wait --for=condition=available deployment $s-dataspace-connector --timeout=240s
+  kubectl wait --for=condition=available deployment $s-dataspace-connector --timeout=120s
 done
 
 nodeIP=$(kubectl get nodes --namespace default -o jsonpath="{.items[0].status.addresses[0].address}")
@@ -29,5 +29,5 @@ contractId=$(jq -r .contractAgreement.id <<< $negotiationId)
 destfile=/tmp/destination-file-$RANDOM
 curl -f -X POST "$consumerUrl/api/file/test-document?connectorAddress=http://provider-dataspace-connector/api/ids/multipart&destination=$destfile&contractId=$contractId"
 sleep 15
-kubectl exec -it deployment/provider-dataspace-connector -- wc -l $destfile
+kubectl exec deployment/provider-dataspace-connector -- wc -l $destfile
 echo "Test succeeded."
