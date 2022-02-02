@@ -1,21 +1,12 @@
-# Helm chart
+# File transfer system tests
 
-## Install helm release
+This system test serves to validate both the connector runtime and the EDC Helm chart with an end-to-end flow.
+It runs within GitHub Actions.
 
-- Build your image. Push it to your container repository if needed.
-- Create a [values file](https://helm.sh/docs/chart_template_guide/values_files/). Use (helm/values-template.yaml) as a template.
-- Install your helm release:
-
-```bash
-  helm install -f <your-values-file> <release-name> helm --wait
-```
-
-## Consideration for building the final chart.
-
-- Helm chart is tested in github actions on PRs with medyagh/setup-minikube@master.
-- Ingress should be configurable.
-- env variables and secrets should be configurable.
-- The chart should be tested with sample 05 to make sure it covers well use case with cloud resources.
+To run it locally, install:
+- [Minikube and Kubectl](https://kubernetes.io/docs/tasks/tools/)
+- [Helm](https://helm.sh/docs/intro/install/)
+- [Docker](https://docs.docker.com/get-docker/)
 
 ## Install helm release with minikube
 
@@ -25,23 +16,15 @@ Start minikube:
 minikube start
 ```
 
-Set minikube docker-env:
+[Set minikube docker environment](https://minikube.sigs.k8s.io/docs/handbook/pushing/#1-pushing-directly-to-the-in-cluster-docker-daemon-docker-env).
 
 ```bash
 eval $(minikube docker-env)
 ```
 
-Build connector image, for example:
+Run tests:
 
 ```bash
 cd DataspaceConnector
-docker build . -f launchers/ids-connector/Dockerfile -t connector:latest
-```
-
-Choose the correct values in helm/values-template.yaml.
-
-Install helm release
-
-```bash
-helm install <release-name> helm
+samples/04.0-file-transfer/system-tests/kubernetes-test.sh
 ```

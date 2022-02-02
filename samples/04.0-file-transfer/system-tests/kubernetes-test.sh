@@ -2,25 +2,28 @@
 
 set -euxo pipefail
 
-# minikube start
-# eval $(minikube docker-env)
-# samples/04.0-file-transfer/system-tests/kubernetes-test.sh
-
 dir=$(dirname $0)
 
+# Build and install Consumer and Provider connectors
 
-for s in consumer provider; do
-  docker build -t $s --build-arg JAR=samples/04.0-file-transfer/$s/build/libs/$s.jar -f launchers/generic/Dockerfile .
-  helm upgrade --install -f $dir/values-$s.yaml $s charts/dataspace-connector
+for target in consumer provider; do
+  docker build -t $target --build-arg JAR=samples/04.0-file-transfer/$target/build/libs/$target.jar -f launchers/generic/Dockerfile .
+  helm upgrade --install -f $dir/values-$target.yaml $target charts/dataspace-connector
 done
 
-for s in consumer provider; do
-  kubectl wait --for=condition=available deployment $s-dataspace-connector --timeout=120s
+# Wait for pods to be live
+
+for target in consumer provider; do
+  kubectl wait --for=condition=available deployment $target-dataspace-connector --timeout=120s
 done
+
+# Resolve NodePort address for Consumer
 
 nodeIP=$(kubectl get nodes --namespace default -o jsonpath="{.items[0].status.addresses[0].address}")
 consumerPort=$(kubectl get --namespace default -o jsonpath="{.spec.ports[0].nodePort}" services consumer-dataspace-connector)
 consumerUrl="http://$nodeIP:$consumerPort"
+
+# Perform negotiation and file transfer. See sample README.md file for more details.
 
 requestId=$(curl -f -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/contractoffer.json "$consumerUrl/api/negotiation?connectorAddress=http://provider-dataspace-connector/api/ids/multipart")
 sleep 15
