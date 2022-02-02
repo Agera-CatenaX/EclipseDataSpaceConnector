@@ -31,7 +31,7 @@ export EDC_SAMPLES_04_CONSUMER_ASSET_PATH=/tmp/destination-file-$RANDOM
 export EDC_PROVIDER_CONNECTOR_HOST=http://provider-dataspace-connector
 export RUN_INTEGRATION_TEST=true
 
-./gradlew :samples:integration-tests:test
+./gradlew :samples:04.0-file-transfer:integration-tests:test
 
 kubectl exec deployment/provider-dataspace-connector -- wc -l $EDC_SAMPLES_04_CONSUMER_ASSET_PATH
 echo "Test succeeded."
