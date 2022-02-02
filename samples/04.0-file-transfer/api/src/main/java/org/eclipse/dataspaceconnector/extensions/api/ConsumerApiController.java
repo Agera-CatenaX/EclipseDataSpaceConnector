@@ -27,14 +27,17 @@ import org.eclipse.dataspaceconnector.spi.contract.negotiation.ConsumerContractN
 import org.eclipse.dataspaceconnector.spi.contract.negotiation.response.NegotiationResult;
 import org.eclipse.dataspaceconnector.spi.monitor.Monitor;
 import org.eclipse.dataspaceconnector.spi.transfer.TransferProcessManager;
+import org.eclipse.dataspaceconnector.spi.transfer.store.TransferProcessStore;
 import org.eclipse.dataspaceconnector.spi.types.domain.DataAddress;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.negotiation.ContractOfferRequest;
 import org.eclipse.dataspaceconnector.spi.types.domain.contract.offer.ContractOffer;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 
 import java.util.Objects;
+import java.util.Optional;
 import java.util.UUID;
 
+import static jakarta.ws.rs.core.Response.Status.*;
 import static java.lang.String.format;
 
 @Consumes({MediaType.APPLICATION_JSON})
@@ -44,12 +47,15 @@ public class ConsumerApiController {
 
     private final Monitor monitor;
     private final TransferProcessManager processManager;
+    private final TransferProcessStore transferProcessStore;
     private final ConsumerContractNegotiationManager consumerNegotiationManager;
 
     public ConsumerApiController(Monitor monitor, TransferProcessManager processManager,
+                                 TransferProcessStore transferProcessStore,
                                  ConsumerContractNegotiationManager consumerNegotiationManager) {
         this.monitor = monitor;
         this.processManager = processManager;
+        this.transferProcessStore = transferProcessStore;
         this.consumerNegotiationManager = consumerNegotiationManager;
     }
 
@@ -113,6 +119,17 @@ public class ConsumerApiController {
         var result = processManager.initiateConsumerRequest(dataRequest);
 
         return result.failed() ? Response.status(400).build() : Response.ok(result.getContent()).build();
+    }
+
+    @GET
+    @Path("transfer/{id}")
+    public Response getTransferById(@PathParam("id") String id) {
+        return Optional.ofNullable(transferProcessStore.find(id))
+                .map(
+                        v -> Response.ok(v).build()
+                ).orElse(
+                        Response.status(NOT_ACCEPTABLE).build()
+                );
     }
 }
 

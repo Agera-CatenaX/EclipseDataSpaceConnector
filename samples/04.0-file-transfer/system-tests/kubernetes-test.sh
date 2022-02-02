@@ -21,16 +21,17 @@ done
 
 nodeIP=$(kubectl get nodes --namespace default -o jsonpath="{.items[0].status.addresses[0].address}")
 consumerPort=$(kubectl get --namespace default -o jsonpath="{.spec.ports[0].nodePort}" services consumer-dataspace-connector)
-consumerUrl="http://$nodeIP:$consumerPort"
 
 # Perform negotiation and file transfer. See sample README.md file for more details.
 
-requestId=$(curl -f -X POST -H "Content-Type: application/json" -d @samples/04.0-file-transfer/contractoffer.json "$consumerUrl/api/negotiation?connectorAddress=http://provider-dataspace-connector/api/ids/multipart")
-sleep 15
-negotiationId=$(curl -f -X GET -H 'X-Api-Key: password' "$consumerUrl/api/control/negotiation/$requestId")
-contractId=$(jq -r .contractAgreement.id <<< $negotiationId)
-destfile=/tmp/destination-file-$RANDOM
-curl -f -X POST "$consumerUrl/api/file/test-document?connectorAddress=http://provider-dataspace-connector/api/ids/multipart&destination=$destfile&contractId=$contractId"
-sleep 15
-kubectl exec deployment/provider-dataspace-connector -- wc -l $destfile
+export CHECK_FILE=0
+export EDC_SAMPLES_04_ASSET_PATH=$(mktemp) # irrelevant
+export EDC_CONSUMER_CONNECTOR_HOST="http://$nodeIP:$consumerPort"
+export EDC_SAMPLES_04_CONSUMER_ASSET_PATH=/tmp/destination-file-$RANDOM
+export EDC_PROVIDER_CONNECTOR_HOST=http://provider-dataspace-connector
+export RUN_INTEGRATION_TEST=true
+
+./gradlew :samples:integration-tests:test
+
+kubectl exec deployment/provider-dataspace-connector -- wc -l $EDC_SAMPLES_04_CONSUMER_ASSET_PATH
 echo "Test succeeded."
