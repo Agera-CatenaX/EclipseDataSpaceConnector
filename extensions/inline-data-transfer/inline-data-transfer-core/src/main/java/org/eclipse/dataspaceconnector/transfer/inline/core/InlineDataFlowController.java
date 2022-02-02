@@ -20,13 +20,14 @@ import org.eclipse.dataspaceconnector.spi.result.Result;
 import org.eclipse.dataspaceconnector.spi.security.Vault;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowController;
 import org.eclipse.dataspaceconnector.spi.transfer.flow.DataFlowInitiateResult;
+import org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus;
 import org.eclipse.dataspaceconnector.spi.types.domain.transfer.DataRequest;
 import org.eclipse.dataspaceconnector.transfer.inline.spi.DataOperatorRegistry;
 import org.eclipse.dataspaceconnector.transfer.inline.spi.DataStreamPublisher;
 import org.jetbrains.annotations.NotNull;
 
 import static java.lang.String.format;
-import static org.eclipse.dataspaceconnector.spi.response.ResponseStatus.ERROR_RETRY;
+import static org.eclipse.dataspaceconnector.spi.transfer.response.ResponseStatus.ERROR_RETRY;
 
 public class InlineDataFlowController implements DataFlowController {
     private final Vault vault;
@@ -63,14 +64,13 @@ public class InlineDataFlowController implements DataFlowController {
                 return DataFlowInitiateResult.failure(ERROR_RETRY, "Failed to copy data from source to destination: " + copyResult.getFailure().getMessages());
             }
         } else {
+            var destSecretName = dataRequest.getDataDestination().getKeyName();
+            if (destSecretName == null) {
+                monitor.severe(format("No credentials found for %s, will not copy!", destinationType));
+                return DataFlowInitiateResult.failure(ERROR_RETRY, "Did not find credentials for data destination.");
+            }
 
-        var destSecretName = dataRequest.getDataDestination().getKeyName();
-        if (destSecretName == null) {
-            monitor.severe(format("No credentials found for %s, will not copy!", destinationType));
-            return DataFlowInitiateResult.failure(ERROR_RETRY, "Did not find credentials for data destination.");
-        }
-
-        var secret = vault.resolveSecret(destSecretName);
+            var secret = vault.resolveSecret(destSecretName);
             // if no copier found for this source/destination pair, then use inline read and write
             var reader = dataOperatorRegistry.getReader(source.getType());
             var writer = dataOperatorRegistry.getWriter(destinationType);
