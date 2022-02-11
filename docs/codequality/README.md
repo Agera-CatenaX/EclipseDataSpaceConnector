@@ -29,3 +29,12 @@ We recommend starting with a smaller set of CodeQL queries for measuring code qu
 
 - Use additional CodeQL query packs / write additional custom CodeQL queries
 - Use additional tools like PMD/Spotbugs with a very reduced set of rules complementing the existing CodeQL queries  
+
+### Customization of Queries Outcome
+
+After reviewing the current capabilities of CodeQL for the customization of queries with the intention of providing additional insight for the repo the following findings are presented:
+
+- The documentation for CodeQL is lacking in detail and provides little insight into the capabilities of the query language
+- Customization of CodeQL at this time brings little benefit and would require addition review of the source code in order to fully expose a robust features to enable customizations
+- CodeQL has valuable functionality in existing `paks` which can and should be used when it benefits the needs for the project
+- Development efforts for CodeQL remain strong and progress is expected to bring clarity and new features that will enable one to develop customizations in the future
